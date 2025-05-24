@@ -79,7 +79,7 @@ model Post {
   automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
   automationId String?
   postId       String?
-  mediaType    String?
+  mediaType    MEDIATYPE   @default(IMAGE)
   mediaUrl     String?
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
@@ -90,6 +90,26 @@ model Trigger {
   automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
   automationId String?
   type         String?
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+}
+
+model Keywords {
+  id           String      @id @default(uuid())
+  automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  automationId String?
+  word         String
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+}
+
+model Listener {
+  id           String      @id @default(uuid())
+  automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  automationId String?
+  type         LISTENER
+  dmCount      Int         @default(0)
+  commentCount Int         @default(0)
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
 }
@@ -106,4 +126,10 @@ enum SUBSCRIPTION_PLAN {
 enum LISTENER {
   SMARTAI
   MESSAGE
+}
+
+enum MEDIATYPE {
+  IMAGE
+  VIDEO
+  CAROUSEL_ALBUM
 }

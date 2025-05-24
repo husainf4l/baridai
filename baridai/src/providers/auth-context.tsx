@@ -77,13 +77,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuthStatus();
   }, []);
 
-  // Route protection for /protected routes
+  // Route protection for /dashboard routes
   useEffect(() => {
     if (!isLoading) {
-      // Check if the route is in the protected folder
-      const isProtectedRoute =
-        pathname?.startsWith("/(protected)") ||
-        pathname?.startsWith("/protected");
+      // Check if the route is a dashboard route
+      const isProtectedRoute = pathname?.startsWith("/dashboard");
 
       if (isProtectedRoute && !user) {
         console.log(
@@ -139,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       AuthService.setToken(mockToken);
 
       // After successful login, navigate to the correct dashboard path
-      router.push("/protected/dashboard");
+      router.push("/dashboard");
 
       // Return success and let the component handle navigation
       return true;
@@ -179,7 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("user", JSON.stringify(newUser));
 
       // Navigate to the correct dashboard path after successful signup
-      router.push("/protected/dashboard");
+      router.push("/dashboard");
 
       return true;
     } catch (error) {

@@ -7,7 +7,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { AuthService } from "@/services/auth-service";
 
 // Define the shape of the user object
@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   // Check for existing session on mount
   useEffect(() => {
@@ -75,6 +76,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     checkAuthStatus();
   }, []);
+
+  // Route protection for /protected routes
+  useEffect(() => {
+    if (!isLoading) {
+      // Check if the route is in the protected folder
+      const isProtectedRoute =
+        pathname?.startsWith("/(protected)") ||
+        pathname?.startsWith("/protected");
+
+      if (isProtectedRoute && !user) {
+        console.log(
+          "Unauthorized access attempt to protected route:",
+          pathname
+        );
+        router.push("/login");
+      }
+    }
+  }, [isLoading, user, pathname, router]);
 
   // Debug user state changes
   useEffect(() => {
@@ -119,6 +138,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Set token in cookies and localStorage using AuthService
       AuthService.setToken(mockToken);
 
+      // After successful login, navigate to the correct dashboard path
+      router.push("/protected/dashboard");
+
       // Return success and let the component handle navigation
       return true;
     } catch (error: any) {
@@ -156,8 +178,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Store user in localStorage
       localStorage.setItem("user", JSON.stringify(newUser));
 
-      // Navigate to dashboard after successful signup
-      router.push("/dashboard");
+      // Navigate to the correct dashboard path after successful signup
+      router.push("/protected/dashboard");
+
       return true;
     } catch (error) {
       console.error("Signup failed:", error);

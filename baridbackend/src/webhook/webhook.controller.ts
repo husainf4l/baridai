@@ -13,6 +13,7 @@ import {
 import { Response } from 'express';
 import { WebhookService } from './webhook.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CreateListenerDto } from './dto/create-listener.dto';
 
 @Controller('webhook')
 export class WebhookController {
@@ -65,6 +66,21 @@ export class WebhookController {
       if (payload.entry && payload.entry.length > 0) {
         console.log(`📦 Received ${payload.entry.length} entries`);
         console.log(`📝 Object type: ${payload.object}`);
+        
+        // Log each entry's ID to help with debugging
+        payload.entry.forEach((entry, index) => {
+          console.log(`Entry ${index + 1} ID: ${entry.id}`);
+          
+          // If this is a messaging webhook, log more details
+          if (entry.messaging && Array.isArray(entry.messaging)) {
+            entry.messaging.forEach((msg, i) => {
+              const sender = msg.sender?.id || 'unknown';
+              const recipient = msg.recipient?.id || 'unknown';
+              const text = msg.message?.text ? `"${msg.message.text.substring(0, 30)}..."` : 'no text';
+              console.log(`📱 Message ${i + 1}: From ${sender} to ${recipient}: ${text}`);
+            });
+          }
+        });
       }
 
       // Always respond with 200 OK quickly (required by Meta webhooks)
@@ -107,7 +123,7 @@ export class WebhookController {
       limit: limit ? parseInt(String(limit)) : 50,
       before: before || undefined,
     };
-    return this.webhookService.getRecentMessages(userId);
+    return this.webhookService.getRecentMessages(userId, options);
   }
 
   // Get messages for a specific automation
@@ -153,5 +169,98 @@ export class WebhookController {
   ) {
     const userId = req.user.userId;
     return this.webhookService.sendInstagramMessage(userId, messageData);
+  }
+
+  // Handle Instagram OAuth callback
+  @Get('instagram/auth-callback')
+  async handleInstagramAuthCallback(
+    @Query('code') code: string,
+    @Query('state') state: string,
+    @Res() res: Response,
+  ) {
+    try {
+      await this.webhookService.processInstagramAuthCallback(code, state);
+      return res.redirect('/integration/success');
+    } catch (error) {
+      console.error('Error processing Instagram auth callback:', error);
+      return res.redirect('/integration/error');
+    }
+  }
+
+  // Handle Instagram deauthorize callback
+  @Post('instagram/deauthorize')
+  async handleInstagramDeauthorize(
+    @Body() data: any,
+    @Res() res: Response,
+  ) {
+    try {
+      await this.webhookService.processInstagramDeauthorize(data);
+      return res.status(HttpStatus.OK).send();
+    } catch (error) {
+      console.error('Error processing Instagram deauthorize:', error);
+      return res.status(HttpStatus.OK).send();
+    }
+  }
+
+  // Handle Instagram data deletion request
+  @Post('instagram/data-deletion')
+  async handleInstagramDataDeletion(
+    @Body() data: any,
+    @Res() res: Response,
+  ) {
+    try {
+      const confirmationCode = await this.webhookService.processInstagramDataDeletion(data);
+      return res.status(HttpStatus.OK).json({ confirmationCode });
+    } catch (error) {
+      console.error('Error processing Instagram data deletion:', error);
+      return res.status(HttpStatus.OK).json({ confirmationCode: 'error' });
+    }
+  }
+
+  // Create a new listener
+  @UseGuards(JwtAuthGuard)
+  @Post('listeners')
+  async createListener(
+    @Req() req,
+    @Body() createListenerDto: CreateListenerDto,
+  ) {
+    const userId = req.user.userId;
+    return this.webhookService.createListener(userId, createListenerDto);
+  }
+
+  // Get all listeners for the authenticated user
+  @UseGuards(JwtAuthGuard)
+  @Get('listeners')
+  async getListeners(@Req() req) {
+    const userId = req.user.userId;
+    return this.webhookService.getListeners(userId);
+  }
+
+  // Get a specific listener by ID
+  @UseGuards(JwtAuthGuard)
+  @Get('listeners/:id')
+  async getListenerById(@Req() req, @Param('id') id: string) {
+    const userId = req.user.userId;
+    return this.webhookService.getListenerById(userId, id);
+  }
+
+  // Update a listener by ID
+  @UseGuards(JwtAuthGuard)
+  @Post('listeners/:id')
+  async updateListener(
+    @Req() req,
+    @Param('id') id: string,
+    @Body() updateListenerDto: CreateListenerDto,
+  ) {
+    const userId = req.user.userId;
+    return this.webhookService.updateListener(userId, id, updateListenerDto);
+  }
+
+  // Delete a listener by ID
+  @UseGuards(JwtAuthGuard)
+  @Post('listeners/:id/delete')
+  async deleteListener(@Req() req, @Param('id') id: string) {
+    const userId = req.user.userId;
+    return this.webhookService.deleteListener(userId, id);
   }
 }

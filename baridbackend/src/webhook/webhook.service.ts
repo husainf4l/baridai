@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateListenerDto } from './dto/create-listener.dto';
 
 @Injectable()
 export class WebhookService {
@@ -181,17 +182,32 @@ export class WebhookService {
             },
           });
 
+          console.log(`Found ${automations.length} active automations for user ${integration.userId}`);
+          
+          if (automations.length === 0) {
+            console.log('⚠️ No active automations found for this integration, creating message will be skipped');
+            continue;
+          }
+          
           // Store the message for each active automation
           for (const automation of automations) {
+            console.log(`Creating DM record for automation: ${automation.id}`);
+            
             // Create a record of this DM in our database
-            await this.prisma.dms.create({
-              data: {
-                automationId: automation.id,
-                senderId: senderId,
-                reciever: recipientId,
-                message: messageText,
-              },
-            });
+            try {
+              const createdDm = await this.prisma.dms.create({
+                data: {
+                  automationId: automation.id,
+                  senderId: senderId,
+                  reciever: recipientId,
+                  message: messageText,
+                },
+              });
+              
+              console.log(`✅ Successfully created DM record: ${createdDm.id}`);
+            } catch (error) {
+              console.error('❌ Failed to create DM record:', error);
+            }
 
             // Check if we need to trigger any automation based on this message
             const shouldTrigger = this.shouldTriggerAutomation(
@@ -250,7 +266,9 @@ export class WebhookService {
   }
 
   // Get recent messages for a user
-  async getRecentMessages(userId: string) {
+  async getRecentMessages(userId: string, options?: any) {
+    console.log(`Getting recent messages for user: ${userId}`);
+    
     // Get all automations for this user
     const automations = await this.prisma.automation.findMany({
       where: {
@@ -262,28 +280,59 @@ export class WebhookService {
     });
 
     if (!automations.length) {
+      console.log(`No automations found for user: ${userId}`);
       return [];
     }
 
+    console.log(`Found ${automations.length} automations for user`);
+    
     // Get automation IDs
     const automationIds = automations.map((automation) => automation.id);
 
-    // Get recent messages for these automations
-    return this.prisma.dms.findMany({
-      where: {
-        automationId: {
-          in: automationIds,
-        },
+    // Build query
+    const where: any = {
+      automationId: {
+        in: automationIds,
       },
+    };
+    
+    // Apply platform filter if provided
+    if (options?.platform) {
+      console.log(`Filtering by platform: ${options.platform}`);
+      // This would need to be mapped to the correct field in your schema
+      // Currently no platform field exists in Dms model
+    }
+    
+    // Apply before filter if provided
+    if (options?.before) {
+      console.log(`Filtering messages before: ${options.before}`);
+      where.createdAt = {
+        lt: new Date(options.before),
+      };
+    }
+    
+    // Determine limit
+    const limit = options?.limit ? parseInt(String(options.limit)) : 100;
+    console.log(`Using limit: ${limit}`);
+    
+    // Get recent messages for these automations
+    const messages = await this.prisma.dms.findMany({
+      where,
       orderBy: {
         createdAt: 'desc',
       },
-      take: 100, // Limit to most recent 100 messages
+      take: limit,
     });
+    
+    console.log(`Found ${messages.length} messages`);
+    
+    return messages;
   }
 
   // Get messages for a specific automation
   async getMessagesForAutomation(userId: string, automationId: string) {
+    console.log(`Getting messages for automation: ${automationId}, user: ${userId}`);
+    
     // Verify that the automation belongs to the user
     const automation = await this.prisma.automation.findFirst({
       where: {
@@ -295,9 +344,11 @@ export class WebhookService {
     if (!automation) {
       throw new NotFoundException('Automation not found');
     }
+    
+    console.log(`Found automation: ${automation.name}`);
 
     // Get messages for this automation
-    return this.prisma.dms.findMany({
+    const messages = await this.prisma.dms.findMany({
       where: {
         automationId: automationId,
       },
@@ -305,6 +356,10 @@ export class WebhookService {
         createdAt: 'desc',
       },
     });
+    
+    console.log(`Found ${messages.length} messages for automation: ${automationId}`);
+    
+    return messages;
   }
 
   /**
@@ -322,6 +377,9 @@ export class WebhookService {
     },
   ) {
     try {
+      console.log(`Fetching Instagram messages for user: ${userId}`);
+      console.log(`Options:`, JSON.stringify(options));
+      
       // First, get the user's Instagram integration to verify tokens and page access
       const integrations = await this.prisma.integration.findMany({
         where: {
@@ -330,7 +388,10 @@ export class WebhookService {
         },
       });
 
+      console.log(`Found ${integrations.length} Instagram integrations for user ${userId}`);
+      
       if (!integrations.length) {
+        console.log(`No Instagram integrations found for user ${userId}`);
         return {
           success: false,
           error: 'No Instagram integration found for this user',
@@ -347,7 +408,10 @@ export class WebhookService {
         },
       });
 
+      console.log(`Found ${automations.length} automations for user ${userId}`);
+
       if (!automations.length) {
+        console.log(`No automations found for user ${userId}`);
         return {
           success: true,
           data: {
@@ -367,19 +431,53 @@ export class WebhookService {
         },
       };
 
-      // Filter by specific page if provided (or use the first integration's page ID)
-      if (options.pageId) {
-        // Use the specified page ID for filtering
-        where.reciever = options.pageId;
-      } else if (integrations[0]?.instagramId) {
-        // Use the first integration's Instagram ID as a default if no page ID provided
-        where.reciever = integrations[0].instagramId;
-      }
+      // Get all relevant Instagram IDs and Page IDs from integrations
+      const instagramIds = integrations
+        .map(integration => integration.instagramId)
+        .filter(Boolean);
+      
+      const pageIds = integrations
+        .map(integration => integration.pageId)
+        .filter(Boolean);
+      
+      console.log(`Instagram IDs for filtering: ${JSON.stringify(instagramIds)}`);
+      console.log(`Page IDs for filtering: ${JSON.stringify(pageIds)}`);
 
+      // Build combined list of IDs to check in receiver field
+      // This should include both Instagram IDs and Page IDs since
+      // sometimes we store one or the other depending on the source
+      const possibleReceiverIds = [...instagramIds];
+      
+      // Add page IDs if they exist and aren't already included
+      if (pageIds.length > 0) {
+        for (const pageId of pageIds) {
+          if (!possibleReceiverIds.includes(pageId)) {
+            possibleReceiverIds.push(pageId);
+          }
+        }
+      }
+      
+      // If we have any IDs to filter by, add them to the query
+      if (possibleReceiverIds.length > 0) {
+        console.log(`Filtering by receiver IDs: ${JSON.stringify(possibleReceiverIds)}`);
+        where.reciever = {
+          in: possibleReceiverIds
+        };
+      }
+      
+      // Filter by specific page if explicitly provided as parameter
+      if (options.pageId) {
+        console.log(`Filtering by specific pageId: ${options.pageId}`);
+        where.reciever = options.pageId;
+      }
+      
       // Filter by conversation (sender) if provided
       if (options.conversationId) {
+        console.log(`Filtering by conversationId: ${options.conversationId}`);
         where.senderId = options.conversationId;
       }
+      
+      console.log("Final query where clause:", JSON.stringify(where, null, 2));
 
       // Get Instagram messages using Prisma
       const messages = await this.prisma.dms.findMany({
@@ -396,6 +494,32 @@ export class WebhookService {
           },
         },
       });
+      
+      console.log(`Found ${messages.length} messages matching criteria`);
+
+      console.log(`Found ${messages.length} messages matching criteria`);
+      
+      // Log first few messages for debugging
+      if (messages.length > 0) {
+        console.log('Sample messages:');
+        messages.slice(0, 3).forEach((msg, i) => {
+          console.log(`Message ${i + 1}: From: ${msg.senderId}, To: ${msg.reciever}, Text: ${msg.message?.substring(0, 30)}...`);
+        });
+      } else {
+        console.log('NO MESSAGES FOUND with query:', JSON.stringify(where, null, 2));
+        
+        // Debug - Get all DMs to see what's in the database
+        const allDms = await this.prisma.dms.findMany({
+          take: 10
+        });
+        console.log(`DEBUGGING - Total DMs in database: ${allDms.length}`);
+        if (allDms.length > 0) {
+          console.log('Sample DMs from database:');
+          allDms.forEach((dm, i) => {
+            console.log(`DM ${i + 1}: AutomationId: ${dm.automationId}, From: ${dm.senderId}, To: ${dm.reciever}`);
+          });
+        }
+      }
 
       // Include integration data for context
       const integrationData = integrations.map((integration) => ({
@@ -485,5 +609,281 @@ export class WebhookService {
         error: 'Failed to send Instagram message',
       };
     }
+  }
+
+  /**
+   * Process Instagram OAuth callback
+   * @param code Authorization code from Instagram
+   * @param state State parameter to verify request
+   */
+  async processInstagramAuthCallback(code: string, state: string): Promise<void> {
+    try {
+      console.log('Processing Instagram OAuth callback');
+      console.log(`Authorization code: ${code.substring(0, 5)}...`);
+      console.log(`State: ${state}`);
+
+      // Parse state parameter (should contain userId and other metadata)
+      let stateData;
+      try {
+        stateData = JSON.parse(Buffer.from(state, 'base64').toString('utf-8'));
+      } catch (error) {
+        console.error('Failed to parse state parameter:', error);
+        throw new Error('Invalid state parameter');
+      }
+
+      const { userId } = stateData;
+      if (!userId) {
+        throw new Error('Invalid state: missing userId');
+      }
+
+      // TODO: Exchange authorization code for long-lived token
+      // For now, mock the token exchange process
+      const mockToken = `MOCK_TOKEN_${Math.random().toString(36).substring(2, 15)}`;
+      const mockPageId = `${Math.random().toString(36).substring(2, 10)}`;
+      const mockInstagramId = `${Math.random().toString(36).substring(2, 10)}`;
+
+      // Store the integration in the database
+      await this.prisma.integration.create({
+        data: {
+          userId,
+          name: 'INSTAGRAM',
+          token: mockToken,
+          expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days from now
+          instagramId: mockInstagramId,
+          pageId: mockPageId,
+          pageName: 'Mock Instagram Page',
+        },
+      });
+
+      console.log(`Created Instagram integration for user: ${userId}`);
+    } catch (error) {
+      console.error('Error processing Instagram auth callback:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Process Instagram deauthorization webhook
+   * @param data Deauthorization data
+   */
+  async processInstagramDeauthorize(data: any): Promise<void> {
+    try {
+      console.log('Processing Instagram deauthorize webhook');
+      console.log(JSON.stringify(data, null, 2));
+
+      // Extract signed request
+      const signedRequest = data.signed_request;
+      if (!signedRequest) {
+        throw new Error('Missing signed_request parameter');
+      }
+
+      // In a real implementation, you would:
+      // 1. Parse and verify the signed_request
+      // 2. Extract the user ID
+      // 3. Delete the relevant integrations
+
+      // For now, just log that we received the request
+      console.log('Received Instagram deauthorize webhook');
+      console.log('In a production environment, would delete the integration');
+    } catch (error) {
+      console.error('Error processing Instagram deauthorize:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Process Instagram data deletion request
+   * @param data Data deletion request
+   * @returns Confirmation code
+   */
+  async processInstagramDataDeletion(data: any): Promise<string> {
+    try {
+      console.log('Processing Instagram data deletion request');
+      console.log(JSON.stringify(data, null, 2));
+
+      // Extract signed request
+      const signedRequest = data.signed_request;
+      if (!signedRequest) {
+        throw new Error('Missing signed_request parameter');
+      }
+
+      // In a real implementation, you would:
+      // 1. Parse and verify the signed_request
+      // 2. Extract the user ID
+      // 3. Delete all user data associated with the Instagram account
+
+      // For now, just generate a confirmation code
+      const confirmationCode = `DELETION_CONFIRMED_${Math.random().toString(36).substring(2, 10)}`;
+      console.log(`Generated confirmation code: ${confirmationCode}`);
+      
+      return confirmationCode;
+    } catch (error) {
+      console.error('Error processing Instagram data deletion:', error);
+      throw error;
+    }
+  }
+
+  // Create a new listener for an automation
+  async createListener(userId: string, createListenerDto: CreateListenerDto) {
+    // Check if the automation belongs to the user
+    const automation = await this.prisma.automation.findFirst({
+      where: {
+        id: createListenerDto.automationId,
+        userId: userId,
+      },
+    });
+
+    if (!automation) {
+      throw new NotFoundException('Automation not found or does not belong to the user');
+    }
+
+    // Create the listener
+    return this.prisma.listener.create({
+      data: {
+        type: createListenerDto.type,
+        automationId: createListenerDto.automationId,
+      },
+    });
+  }
+
+  // Get all listeners for a user
+  async getListeners(userId: string) {
+    // Get all automations for the user
+    const automations = await this.prisma.automation.findMany({
+      where: {
+        userId: userId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!automations.length) {
+      return [];
+    }
+
+    const automationIds = automations.map((automation) => automation.id);
+
+    // Get listeners for these automations
+    return this.prisma.listener.findMany({
+      where: {
+        automationId: {
+          in: automationIds,
+        },
+      },
+      include: {
+        automation: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+  }
+
+  // Get a specific listener by ID
+  async getListenerById(userId: string, listenerId: string) {
+    // Get all automations for the user
+    const automations = await this.prisma.automation.findMany({
+      where: {
+        userId: userId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!automations.length) {
+      throw new NotFoundException('No automations found for this user');
+    }
+
+    const automationIds = automations.map((automation) => automation.id);
+
+    // Get the listener if it belongs to one of the user's automations
+    const listener = await this.prisma.listener.findFirst({
+      where: {
+        id: listenerId,
+        automationId: {
+          in: automationIds,
+        },
+      },
+      include: {
+        automation: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!listener) {
+      throw new NotFoundException('Listener not found');
+    }
+
+    return listener;
+  }
+
+  // Update a listener
+  async updateListener(userId: string, listenerId: string, updateListenerDto: CreateListenerDto) {
+    // Check if the automation belongs to the user
+    const automation = await this.prisma.automation.findFirst({
+      where: {
+        id: updateListenerDto.automationId,
+        userId: userId,
+      },
+    });
+
+    if (!automation) {
+      throw new NotFoundException('Automation not found or does not belong to the user');
+    }
+
+    // Check if listener exists and belongs to one of the user's automations
+    const existingListener = await this.prisma.listener.findFirst({
+      where: {
+        id: listenerId,
+        automation: {
+          userId: userId,
+        },
+      },
+    });
+
+    if (!existingListener) {
+      throw new NotFoundException('Listener not found or does not belong to the user');
+    }
+
+    // Update the listener
+    return this.prisma.listener.update({
+      where: {
+        id: listenerId,
+      },
+      data: {
+        type: updateListenerDto.type,
+        automationId: updateListenerDto.automationId,
+      },
+    });
+  }
+
+  // Delete a listener
+  async deleteListener(userId: string, listenerId: string) {
+    // Check if listener exists and belongs to one of the user's automations
+    const existingListener = await this.prisma.listener.findFirst({
+      where: {
+        id: listenerId,
+        automation: {
+          userId: userId,
+        },
+      },
+    });
+
+    if (!existingListener) {
+      throw new NotFoundException('Listener not found or does not belong to the user');
+    }
+
+    // Delete the listener
+    return this.prisma.listener.delete({
+      where: {
+        id: listenerId,
+      },
+    });
   }
 }

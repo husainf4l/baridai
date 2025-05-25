@@ -1,0 +1,423 @@
+{
+  "info": {
+    "name": "Barid.ai API",
+    "description": "Postman collection for interacting with Barid.ai API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"your_username\",\n    \"password\": \"your_password\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login to get JWT token"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for authentication"
+    },
+    {
+      "name": "Automations",
+      "item": [
+        {
+          "name": "Get All Automations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/automations",
+              "host": ["{{baseUrl}}"],
+              "path": ["automations"]
+            },
+            "description": "Get all automations for the authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Automation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Instagram Message Automation\",\n  \"active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/automations",
+              "host": ["{{baseUrl}}"],
+              "path": ["automations"]
+            },
+            "description": "Create a simple automation for Instagram messages"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Automation By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/automations/{{automationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["automations", "{{automationId}}"]
+            },
+            "description": "Get a specific automation by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Automation",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Automation Name\",\n  \"active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/automations/{{automationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["automations", "{{automationId}}"]
+            },
+            "description": "Update an existing automation"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Automation",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/automations/{{automationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["automations", "{{automationId}}"]
+            },
+            "description": "Delete an automation"
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Automation",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/automations/{{automationId}}/toggle",
+              "host": ["{{baseUrl}}"],
+              "path": ["automations", "{{automationId}}", "toggle"]
+            },
+            "description": "Toggle the active state of an automation"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for managing automations"
+    },
+    {
+      "name": "Listeners",
+      "item": [
+        {
+          "name": "Get All Listeners",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/webhook/listeners",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhook", "listeners"]
+            },
+            "description": "Get all listeners for the authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Listener",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"automationId\": \"{{automationId}}\",\n  \"type\": \"MESSAGE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/webhook/listeners",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhook", "listeners"]
+            },
+            "description": "Create a message listener for your automation"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Listener By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/webhook/listeners/{{listenerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhook", "listeners", "{{listenerId}}"]
+            },
+            "description": "Get a specific listener by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Listener",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"automationId\": \"{{automationId}}\",\n  \"type\": \"MESSAGE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/webhook/listeners/{{listenerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhook", "listeners", "{{listenerId}}"]
+            },
+            "description": "Update an existing listener"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Listener",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/webhook/listeners/{{listenerId}}/delete",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhook", "listeners", "{{listenerId}}", "delete"]
+            },
+            "description": "Delete a listener"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for managing listeners"
+    },
+    {
+      "name": "Instagram Messages",
+      "item": [
+        {
+          "name": "Get Instagram Messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/webhook/messages/instagram",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhook", "messages", "instagram"],
+              "query": [
+                {
+                  "key": "pageId",
+                  "value": "{{pageId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "conversationId",
+                  "value": "{{conversationId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get Instagram messages for the authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "Send Instagram Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pageId\": \"{{pageId}}\",\n  \"recipientId\": \"{{recipientId}}\",\n  \"message\": \"Hello from the API!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/webhook/messages/instagram/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhook", "messages", "instagram", "send"]
+            },
+            "description": "Send a message to an Instagram user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Messages For Automation",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/webhook/messages/automation/{{automationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhook", "messages", "automation", "{{automationId}}"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get messages for a specific automation"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for managing Instagram messages"
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://baridai.com/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "YOUR_JWT_TOKEN",
+      "type": "string"
+    },
+    {
+      "key": "automationId",
+      "value": "1a54db4f-b23b-4533-8e2e-2c70b2ac2a85",
+      "type": "string"
+    },
+    {
+      "key": "listenerId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "pageId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "recipientId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "conversationId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

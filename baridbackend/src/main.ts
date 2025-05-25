@@ -12,6 +12,10 @@ async function bootstrap() {
     }),
   );
   app.enableCors();
+  
+  // Set global prefix for all routes
+  app.setGlobalPrefix('api');
+  
   await app.listen(process.env.PORT ?? 4008);
 }
 bootstrap();

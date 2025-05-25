@@ -5,7 +5,7 @@ import { AuthProvider } from "@/providers/auth-context";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 
-// Initialize fonts but use them directly 
+// Initialize fonts but use them directly
 const geist = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -29,7 +29,11 @@ export default function RootLayout({
 }>) {
   return (
     <AuthProvider>
-      <html lang="en" suppressHydrationWarning className={`${geist.variable} ${geistMono.variable}`}>
+      <html
+        lang="en"
+        suppressHydrationWarning
+        className={`${geist.variable} ${geistMono.variable}`}
+      >
         <body>
           <ThemeProvider
             attribute="class"

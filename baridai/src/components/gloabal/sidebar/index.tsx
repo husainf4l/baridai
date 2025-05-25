@@ -196,7 +196,9 @@ const Sidebar = ({ username }: Props) => {
                         </span>
                       </button>
                     </TooltipTrigger>
-                    <TooltipContent side="right">Upgrade to Smart AI</TooltipContent>
+                    <TooltipContent side="right">
+                      Upgrade to Smart AI
+                    </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               )}
@@ -217,9 +219,7 @@ const Sidebar = ({ username }: Props) => {
                 size="icon"
                 onClick={toggleCollapse}
                 className="w-full rounded-xl p-2 h-10 mb-1"
-                aria-label={
-                  isCollapsed ? "Expand sidebar" : "Collapse sidebar"
-                }
+                aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               >
                 {isCollapsed ? (
                   <ChevronRightIcon className="h-5 w-5" />

@@ -5,6 +5,55 @@
  * Documentation: https://developers.facebook.com/docs/instagram-api/
  */
 
+// Types for Instagram API responses
+interface InsightsValue {
+  value: number;
+}
+
+interface InsightData {
+  name: string;
+  period: string;
+  values: InsightsValue[];
+  title: string;
+  description: string;
+  id: string;
+}
+
+interface InsightsResponse {
+  data: InsightData[];
+  paging?: {
+    previous?: string;
+    next?: string;
+  };
+}
+
+interface MediaItem {
+  id: string;
+  caption?: string;
+  media_type: string;
+  media_url: string;
+  permalink: string;
+  thumbnail_url?: string;
+  timestamp: string;
+  username: string;
+}
+
+interface MediaResponse {
+  data: MediaItem[];
+  paging?: {
+    cursors: {
+      before: string;
+      after: string;
+    };
+    next?: string;
+  };
+}
+
+interface TokenResponse {
+  access_token: string;
+  user_id: string;
+}
+
 /**
  * Fetch Media Insights for a specific Instagram media post
  * Documentation: https://developers.facebook.com/docs/instagram-platform/reference/instagram-media/insights
@@ -18,7 +67,7 @@ export async function getMediaInsights(
   mediaId: string,
   accessToken: string,
   metrics: string[] = ['engagement', 'impressions', 'reach']
-): Promise<any> {
+): Promise<InsightsResponse> {
   try {
     // The Instagram Graph API endpoint for media insights
     const endpoint = `https://graph.instagram.com/v18.0/${mediaId}/insights`;
@@ -56,7 +105,7 @@ export async function getUserMedia(
   userId: string,
   accessToken: string,
   limit: number = 25
-): Promise<any> {
+): Promise<MediaResponse> {
   try {
     // The Instagram Graph API endpoint for user media
     const endpoint = `https://graph.instagram.com/v18.0/${userId}/media`;
@@ -94,7 +143,7 @@ export async function exchangeCodeForToken(
   clientId: string,
   clientSecret: string,
   redirectUri: string
-): Promise<any> {
+): Promise<TokenResponse> {
   try {
     // The Instagram OAuth token endpoint
     const tokenEndpoint = 'https://api.instagram.com/oauth/access_token';

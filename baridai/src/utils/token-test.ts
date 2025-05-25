@@ -9,17 +9,20 @@ import { AuthService } from '../services/auth-service';
 async function testTokenValidation() {
   console.log('===== JWT TOKEN VALIDATION TEST =====');
   
-  // 1. Generate a test token
-  console.log('\n1. Generating test token...');
-  const testPayload = {
-    sub: '12345',
-    username: 'testuser',
-    email: 'test@example.com',
-    nonce: Date.now().toString()
-  };
+  // 1. Use an existing token instead of creating a mock one
+  console.log('\n1. Using existing token from localStorage...');
   
-  const token = AuthService.createMockToken(testPayload);
-  console.log('Generated token:', token.substring(0, 20) + '...');
+  // Check if we're in a browser environment, otherwise use a test token
+  const token = typeof window !== 'undefined' 
+    ? localStorage.getItem('access_token') 
+    : null;
+    
+  if (!token) {
+    console.log('No token found in localStorage. Please login first or provide a token manually.');
+    return;
+  }
+  
+  console.log('Using token:', token.substring(0, 20) + '...');
   
   // 2. Try to decode the token directly
   try {

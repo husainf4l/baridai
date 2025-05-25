@@ -16,6 +16,28 @@ export default function Login() {
   const router = useRouter();
 
   useEffect(() => {
+    // Check URL for error parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const errorType = urlParams.get("error");
+
+    // Handle different types of auth errors
+    if (errorType === "backend_unavailable") {
+      setError(
+        "Backend server is unavailable. Please try again later or contact support."
+      );
+    } else if (errorType === "auth_invalid") {
+      setError("Your authentication is invalid. Please sign in again.");
+    } else if (errorType === "session_expired") {
+      setError("Your session has expired. Please sign in again to continue.");
+    }
+
+    // Clear the error parameter from URL to prevent showing again on refresh
+    if (errorType) {
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete("error");
+      window.history.replaceState({}, document.title, newUrl.toString());
+    }
+
     // Comment out the automatic redirection to allow users to stay on the login page
     // if (!isLoading && user) {
     //   router.push("/dashboard");
@@ -32,32 +54,77 @@ export default function Login() {
     }
 
     try {
+      // Always check if backend is available before attempting login
+      try {
+        // Use an AbortController to limit wait time
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+        // Ping the backend with a lightweight request
+        const pingResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/health`,
+          {
+            method: "GET",
+            signal: controller.signal,
+          }
+        );
+
+        clearTimeout(timeoutId);
+
+        if (!pingResponse.ok) {
+          throw new Error("Backend health check failed");
+        }
+      } catch (pingError) {
+        console.error("Backend health check failed:", pingError);
+        setError(
+          "Authentication server is currently unavailable. Please try again later."
+        );
+        return;
+      }
+
       console.log("Submitting login form...");
       const success = await login(username, password);
 
       if (success) {
-        console.log("Login successful, staying on login page");
+        // Redirect to the user's home page after successful login
+        if (username) {
+          router.push(`/${username}/home`);
+        } else {
+          // fallback if username is not available
+          router.push("/");
+        }
         setLoginSuccess(true);
       }
     } catch (err: any) {
       console.error("Login error:", err);
-      setError(
-        err.message || "Invalid username or password. Please try again."
-      );
+
+      // Handle specific error messages
+      if (
+        err.message &&
+        err.message.includes("Backend server is unavailable")
+      ) {
+        setError(
+          "Authentication server is currently unavailable. Please try again later."
+        );
+      } else {
+        setError(
+          err.message || "Invalid username or password. Please try again."
+        );
+      }
     }
   };
 
   return (
     <div className="min-h-screen font-[family-name:var(--font-geist-sans)] bg-gradient-to-b from-[#0b1d3a] via-[#1e3a6d] to-[#5a6fa3] flex flex-col">
       {/* Navigation */}
-      <header className="w-full max-w-7xl mx-auto py-6 px-4 flex justify-between items-center">
-        <Link href="/" className="flex items-center space-x-2">
+      <div className="w-full max-w-7xl mx-auto px-4">
+        <Link href="/" className="flex items-center space-x-2 py-6">
           <div className="bg-white p-2 rounded-md">
             <span className="font-bold text-blue-900">B</span>
           </div>
           <span className="text-white font-semibold text-lg">Barid AI</span>
         </Link>
-      </header>
+      </div>
 
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">

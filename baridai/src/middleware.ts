@@ -27,7 +27,19 @@ export function middleware(request: NextRequest) {
   // If trying to access an auth path while already authenticated
   if (isAuthPath && isAuthenticated) {
     // Redirect to the dashboard
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/app', request.url));
+  }
+
+  // Only allow this username
+  const ALLOWED_USERNAMES = ['upthouse'];
+
+  // Match /username/... (not /auth or /website)
+  const match = path.match(/^\/([^/]+)\//);
+  if (match) {
+    const username = match[1];
+    if (!ALLOWED_USERNAMES.includes(username)) {
+      return NextResponse.rewrite(new URL('/404', request.url));
+    }
   }
 
   // Otherwise, continue with the request
@@ -38,10 +50,11 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // Protected routes
-    '/dashboard/:path*',
+    '/app/:path*',
     '/api/protected/:path*',
     // Auth routes
     '/login',
     '/signup',
+    '/:username((?!auth|website|_next|favicon.ico|api).*)*',
   ],
 };

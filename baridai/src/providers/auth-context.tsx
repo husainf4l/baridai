@@ -54,15 +54,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (token && storedUser) {
           console.log("Found stored user:", JSON.parse(storedUser));
           console.log("Found auth token:", token.substring(0, 20) + "...");
-          setUser(JSON.parse(storedUser));
+          
+          // Always validate token with backend before accepting it
+          try {
+            const isValid = await AuthService.verifyTokenWithBackend();
+            if (isValid) {
+              console.log("Token validated with backend");
+              setUser(JSON.parse(storedUser));
+            } else {
+              console.warn("Token validation failed - clearing auth data");
+              AuthService.removeToken();
+              localStorage.removeItem("user");
+            }
+          } catch (verifyError) {
+            console.error("Backend validation error:", verifyError);
+            console.warn("Backend unavailable, clearing auth data");
+            AuthService.removeToken();
+            localStorage.removeItem("user");
+          }
         } else if (!token && storedUser) {
-          // If we have user data but no token, set the token
-          console.log("Found user but no token, restoring token...");
-          const userData = JSON.parse(storedUser);
-          // Generate a mock token for this user
-          const mockToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIke3VzZXJEYXRhLmlkfSIsInVzZXJuYW1lIjoiJHt1c2VyRGF0YS51c2VybmFtZX0iLCJlbWFpbCI6IiR7dXNlckRhdGEuZW1haWx9IiwiZXhwIjoxNzE2MzI5NjAwfQ.signature`;
-          AuthService.setToken(mockToken);
-          setUser(userData);
+          // If we have user data but no token, clear it and require re-authentication
+          console.log("Found user data but no token - requiring re-authentication");
+          localStorage.removeItem("user");
         }
       } catch (error) {
         console.error("Auth check failed:", error);
@@ -77,11 +90,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuthStatus();
   }, []);
 
-  // Route protection for /dashboard routes
+  // Route protection for /app routes
   useEffect(() => {
     if (!isLoading) {
-      // Check if the route is a dashboard route
-      const isProtectedRoute = pathname?.startsWith("/dashboard");
+      // Check if the route is a app route
+      const isProtectedRoute = pathname?.startsWith("/app");
 
       if (isProtectedRoute && !user) {
         console.log(
@@ -92,6 +105,77 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [isLoading, user, pathname, router]);
+
+  // Session validation check
+  useEffect(() => {
+    // Initial check when route changes
+    const validateUserSession = async () => {
+      // Only check when user is logged in and on protected routes
+      if (user && pathname?.startsWith("/app")) {
+        try {
+          console.log("Validating user session...");
+          const sessionStatus = await AuthService.validateSession();
+
+          if (!sessionStatus.valid) {
+            console.error(
+              `Session validation failed: ${sessionStatus.errorType}`,
+              sessionStatus.message
+            );
+
+            // Clean up authentication data
+            AuthService.removeToken();
+            localStorage.removeItem("user");
+            setUser(null);
+
+            // Redirect to login with appropriate error message
+            let errorParam = "auth_invalid";
+
+            // Use specific error types for better user experience
+            if (sessionStatus.errorType === "token_expired") {
+              errorParam = "session_expired";
+            } else if (sessionStatus.errorType === "backend_unavailable") {
+              errorParam = "backend_unavailable";
+            }
+
+            router.push(`/login?error=${errorParam}`);
+          } else {
+            console.log("Session validation successful");
+          }
+        } catch (error) {
+          console.error("Session validation check failed:", error);
+        }
+      }
+    };
+
+    // Run initial check
+    validateUserSession();
+
+    // Set up periodic token validation (every 5 minutes)
+    const sessionCheckInterval = setInterval(async () => {
+      if (user) {
+        console.log("Running periodic session validation check");
+        const sessionStatus = await AuthService.validateSession();
+
+        if (!sessionStatus.valid) {
+          console.error(
+            `Periodic session check failed: ${sessionStatus.errorType}`,
+            sessionStatus.message
+          );
+
+          // Clean up authentication data
+          AuthService.removeToken();
+          localStorage.removeItem("user");
+          setUser(null);
+
+          // Redirect to login with appropriate error message
+          router.push(`/login?error=session_expired`);
+        }
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+
+    // Clean up interval
+    return () => clearInterval(sessionCheckInterval);
+  }, [user, pathname, router]);
 
   // Debug user state changes
   useEffect(() => {
@@ -107,40 +191,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
 
     try {
-      // For development: simple validation to avoid empty users
+      // Validate input
       if (!username || !password) {
         throw new Error("Username and password are required");
       }
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      try {
+        // Call the real backend API through our AuthService
+        const authResponse = await AuthService.login(username, password);
 
-      // Mock successful login - in production this would be an API call
-      const newUser = {
-        id: Date.now().toString(),
-        email: `${username}@example.com`,
-        username: username,
-      };
+        if (!authResponse || !authResponse.user) {
+          throw new Error("Invalid response from server");
+        }
 
-      console.log("Login successful, user:", newUser);
+        const userData = authResponse.user;
 
-      // Update state
-      setUser(newUser);
+        // Extract user information from the response
+        const userInfo = {
+          id: userData.id.toString(),
+          username: userData.username,
+          email: userData.email,
+          // Add any additional fields from the response
+        };
 
-      // Store user in localStorage
-      localStorage.setItem("user", JSON.stringify(newUser));
+        console.log("Login successful, user:", userInfo);
 
-      // Generate a mock token for development purposes
-      const mockToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIke25ld1VzZXIuaWR9Iiwibm9uY2UiOiIke0RhdGUubm93KCl9IiwidXNlcm5hbWUiOiIke3VzZXJuYW1lfSIsImVtYWlsIjoiJHtuZXdVc2VyLmVtYWlsfSIsImV4cCI6JHtNYXRoLmZsb29yKERhdGUubm93KCkgLyAxMDAwICsgNjAgKiA2MCAqIDI0ICogNyl9fQ.signature`;
+        // Update state with the user data from server
+        setUser(userInfo);
 
-      // Set token in cookies and localStorage using AuthService
-      AuthService.setToken(mockToken);
+        // Store user in localStorage
+        localStorage.setItem("user", JSON.stringify(userInfo));
 
-      // After successful login, navigate to the correct dashboard path
-      router.push("/dashboard");
+        // Note: The token is already set by AuthService.login
+        // No need to generate a mock token anymore
 
-      // Return success and let the component handle navigation
-      return true;
+        // After successful login, navigate to the app
+        router.push("/app");
+
+        return true;
+      } catch (apiError: any) {
+        // Handle API errors
+        console.error("API login error:", apiError);
+
+        // Display appropriate error based on connection status
+        if (apiError.message && apiError.message.includes("NetworkError") || 
+            apiError.message && apiError.message.includes("Failed to fetch") ||
+            apiError.name === "AbortError") {
+          throw new Error("Backend server is unavailable. Please try again later.");
+        }
+        // In all cases, rethrow the error for proper handling
+        throw apiError;
+      }
     } catch (error: any) {
       console.error("Login failed:", error);
       throw error;
@@ -151,11 +252,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Logout function
   const logout = () => {
-    localStorage.removeItem("user");
-    // Use AuthService to properly remove tokens from cookies and localStorage
-    AuthService.removeToken();
-    setUser(null);
-    router.push("/login");
+    try {
+      console.log("Logging out user");
+
+      // Clear user data from localStorage
+      localStorage.removeItem("user");
+
+      // Use AuthService to properly remove tokens from cookies and localStorage
+      AuthService.removeToken();
+
+      // Reset user state
+      setUser(null);
+
+      // Navigate to login page
+      router.push("/login");
+
+      console.log("Logout completed successfully");
+    } catch (error) {
+      console.error("Error during logout:", error);
+
+      // Ensure token is removed even if other steps fail
+      AuthService.removeToken();
+
+      // Force page reload as fallback if router navigation fails
+      window.location.href = "/login";
+    }
   };
 
   // Signup function
@@ -164,25 +285,75 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     email: string,
     password: string
   ): Promise<boolean> => {
+    console.log("Sign up attempt for:", username, email);
     setIsLoading(true);
+
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Validate input
+      if (!username || !email || !password) {
+        throw new Error("Username, email, and password are required");
+      }
 
-      // Mock successful signup
-      const newUser = { id: Date.now().toString(), email, username };
-      setUser(newUser);
+      try {
+        // Call the real backend API through AuthService
+        const response = await AuthService.register(username, email, password);
 
-      // Store user in localStorage
-      localStorage.setItem("user", JSON.stringify(newUser));
+        if (!response) {
+          throw new Error("No response from server");
+        }
 
-      // Navigate to the correct dashboard path after successful signup
-      router.push("/dashboard");
+        // Check if we have user data in the response
+        const userData = response.user;
+        if (!userData) {
+          throw new Error("Invalid response: missing user data");
+        }
 
-      return true;
+        // Create a user object from the response
+        const userInfo = {
+          id: userData.id.toString(),
+          username: userData.username,
+          email: userData.email,
+          // Add any additional fields from the response
+        };
+
+        console.log("Registration successful, user:", userInfo);
+
+        // Update state with the user data from server
+        setUser(userInfo);
+
+        // Store user in localStorage
+        localStorage.setItem("user", JSON.stringify(userInfo));
+
+        // If token wasn't already set by AuthService.register, we should login manually
+        if (!response.access_token) {
+          console.log(
+            "No token in registration response, redirecting to login"
+          );
+          router.push("/login");
+          return true;
+        }
+
+        // Otherwise navigate to the app since we're already logged in
+        console.log("User registered and authenticated, redirecting to app");
+        router.push("/app/home");
+
+        return true;
+      } catch (apiError: any) {
+        // Handle API errors
+        console.error("API registration error:", apiError);
+
+        // Display appropriate error based on connection status
+        if (apiError.message && apiError.message.includes("NetworkError") || 
+            apiError.message && apiError.message.includes("Failed to fetch") ||
+            apiError.name === "AbortError") {
+          throw new Error("Backend server is unavailable. Please try again later.");
+        }
+        // In all cases, rethrow the error for proper handling
+        throw apiError;
+      }
     } catch (error) {
       console.error("Signup failed:", error);
-      return false;
+      throw error;
     } finally {
       setIsLoading(false);
     }

@@ -13,12 +13,41 @@ export default function Signup() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const router = useRouter();
 
   const { signup } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Basic validation
+    if (!username.trim()) {
+      setError("Username is required");
+      return;
+    }
+
+    if (!email.trim()) {
+      setError("Email is required");
+      return;
+    }
+
+    // Simple email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
+    if (!password) {
+      setError("Password is required");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError("Passwords don't match");
@@ -29,14 +58,39 @@ export default function Signup() {
     setError("");
 
     try {
-      await signup(username, email, password);
+      const success = await signup(username, email, password);
+      console.log("Registration complete, success:", success);
+
+      // Show success message before redirect happens
+      setSuccessMessage(
+        "Account created successfully! Redirecting to dashboard..."
+      );
+
       // The auth context will handle redirection and token storage
     } catch (err: any) {
       console.error("Signup error:", err);
-      setError(
-        err.message ||
-          "There was a problem creating your account. Please try again."
-      );
+
+      // Check for common API errors and provide user-friendly messages
+      if (
+        err.message?.includes("already exists") ||
+        err.message?.includes("already taken")
+      ) {
+        setError(
+          "Username or email already in use. Please try a different one."
+        );
+      } else if (
+        err.message?.includes("network") ||
+        err.message?.includes("connect")
+      ) {
+        setError(
+          "Cannot connect to the server. Please check your internet connection and try again."
+        );
+      } else {
+        setError(
+          err.message ||
+            "There was a problem creating your account. Please try again."
+        );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -45,14 +99,14 @@ export default function Signup() {
   return (
     <div className="min-h-screen font-[family-name:var(--font-geist-sans)] bg-gradient-to-b from-[#0b1d3a] via-[#1e3a6d] to-[#5a6fa3] flex flex-col">
       {/* Navigation */}
-      <header className="w-full max-w-7xl mx-auto py-6 px-4 flex justify-between items-center">
-        <Link href="/" className="flex items-center space-x-2">
+      <div className="w-full max-w-7xl mx-auto px-4">
+        <Link href="/" className="flex items-center space-x-2 py-6">
           <div className="bg-white p-2 rounded-md">
             <span className="font-bold text-blue-900">B</span>
           </div>
           <span className="text-white font-semibold text-lg">Barid AI</span>
         </Link>
-      </header>
+      </div>
 
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
@@ -68,6 +122,11 @@ export default function Signup() {
             {error && (
               <div className="bg-red-500/20 border border-red-500/50 text-white px-4 py-3 rounded-lg mb-6">
                 {error}
+              </div>
+            )}
+            {successMessage && (
+              <div className="bg-green-500/20 border border-green-500/50 text-white px-4 py-3 rounded-lg mb-6">
+                {successMessage}
               </div>
             )}
             <form onSubmit={handleSubmit} className="space-y-5">

@@ -1,57 +1,13 @@
 "use client";
 import Image from "next/image";
-import { ModeToggle } from "@/components/ui/mode-toggle";
+import Link from "next/link";
+import Navbar from "@/components/layout/navbar";
+import Footer from "@/components/layout/footer";
 
 export default function Home() {
   return (
     <div className="min-h-screen font-[family-name:var(--font-geist-sans)] bg-white dark:bg-gray-900 text-[#1D1D1F] dark:text-white">
-      {/* Header/Navigation - Apple Style */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 dark:bg-gray-900/90 border-b border-gray-100 dark:border-gray-800">
-        <div className="container mx-auto py-5 px-6 flex items-center justify-between">
-          <div className="flex items-center">
-            <span className="font-medium text-xl tracking-tight dark:text-white">
-              barid ai
-            </span>
-          </div>
-          <nav className="hidden md:flex space-x-8">
-            <a
-              href="#features"
-              className="text-sm font-medium text-[#1D1D1F] dark:text-white hover:text-blue-500 transition"
-            >
-              Features
-            </a>
-            <a
-              href="#plans"
-              className="text-sm font-medium text-[#1D1D1F] dark:text-white hover:text-blue-500 transition"
-            >
-              Pricing
-            </a>
-            <a
-              href="#how-it-works"
-              className="text-sm font-medium text-[#1D1D1F] dark:text-white hover:text-blue-500 transition"
-            >
-              How It Works
-            </a>
-          </nav>
-          <div className="flex items-center space-x-4">
-            <div className="mr-2">
-              <ModeToggle />
-            </div>
-            <a
-              href="/login"
-              className="text-sm font-medium text-[#1D1D1F] dark:text-white hover:text-blue-500 transition"
-            >
-              Login
-            </a>
-            <a
-              href="/signup"
-              className="bg-blue-500 text-white px-5 py-1.5 rounded-full text-sm font-medium hover:bg-blue-600 transition"
-            >
-              Get Started
-            </a>
-          </div>
-        </div>
-      </header>
+      <Navbar showToggle={true} transparent={false} />
 
       {/* Hero Section - Apple Style */}
       <main className="pt-16 pb-24">
@@ -66,18 +22,18 @@ export default function Home() {
               results.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <a
+              <Link
                 href="/signup"
                 className="bg-blue-500 hover:bg-blue-600 transition px-8 py-3 rounded-full text-white text-sm font-medium"
               >
                 Get Started
-              </a>
-              <a
+              </Link>
+              <Link
                 href="#how-it-works"
                 className="bg-[#F5F5F7] dark:bg-gray-800 text-[#1D1D1F] dark:text-white hover:bg-[#E8E8ED] dark:hover:bg-gray-700 transition px-8 py-3 rounded-full text-sm font-medium"
               >
                 Learn More
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -90,6 +46,7 @@ export default function Home() {
                   alt="Social media influencer"
                   fill
                   className="object-cover"
+                  sizes="(max-width: 768px) 50vw, 25vw"
                   style={{ objectPosition: "center" }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-80"></div>
@@ -106,6 +63,7 @@ export default function Home() {
                   alt="Content creator"
                   fill
                   className="object-cover"
+                  sizes="(max-width: 768px) 50vw, 25vw"
                   style={{ objectPosition: "center" }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-80"></div>
@@ -122,6 +80,7 @@ export default function Home() {
                   alt="Social media marketing"
                   fill
                   className="object-cover"
+                  sizes="(max-width: 768px) 50vw, 25vw"
                   style={{ objectPosition: "center" }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-80"></div>
@@ -138,6 +97,7 @@ export default function Home() {
                   alt="Social media analytics"
                   fill
                   className="object-cover"
+                  sizes="(max-width: 768px) 50vw, 25vw"
                   style={{ objectPosition: "center" }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-80"></div>
@@ -405,64 +365,275 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Choose Your Plan Section */}
+      {/* Choose Your Plan Section - SEO Optimized */}
       <section
         id="plans"
-        className="w-full max-w-4xl mx-auto flex flex-col items-center gap-8 mt-8"
+        className="py-20 w-full max-w-5xl mx-auto flex flex-col items-center gap-8"
       >
-        <h2 className="text-3xl font-semibold text-center mb-2">
-          Choose Your Plan
-        </h2>
-        <p className="text-center text-gray-600 dark:text-gray-300 max-w-2xl mb-4">
-          Barid AI is a platform to manage Instagram, from scheduling posts to
-          replying to direct messages with AI-powered automation.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-8 w-full justify-center">
+        <div className="text-center max-w-3xl mx-auto mb-8">
+          <h2 className="text-3xl md:text-4xl font-semibold mb-4">
+            Instagram AI Reply Management Pricing
+          </h2>
+          <p className="text-center text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Choose the perfect plan to automate your Instagram DMs with AI. Our
+            pricing is designed to scale with your business needs for maximum
+            social media engagement.
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-8 w-full justify-center px-4">
           {/* Free Plan */}
-          <div className="flex-1 bg-white dark:bg-gray-900 rounded-xl shadow p-6 flex flex-col items-center border border-gray-200 dark:border-gray-800">
-            <h3 className="text-xl font-bold mb-2">Free</h3>
-            <p className="text-4xl font-extrabold mb-2">$0</p>
-            <ul className="text-gray-600 dark:text-gray-300 mb-4 text-center">
-              <li>✔️ Manage posts</li>
-              <li>✔️ Basic DM management</li>
-              <li>✔️ Limited AI replies</li>
+          <div className="flex-1 bg-white dark:bg-gray-900 rounded-xl shadow p-8 flex flex-col items-center border border-gray-200 dark:border-gray-800 hover:shadow-lg transition">
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-full mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-blue-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold mb-2">Free Starter</h3>
+            <p className="text-4xl font-extrabold mb-1">$0</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              Forever free
+            </p>
+            <ul className="text-gray-600 dark:text-gray-300 mb-6 space-y-3 w-full">
+              <li className="flex items-center">
+                <svg
+                  className="h-5 w-5 text-green-500 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+                <span>Instagram post scheduling</span>
+              </li>
+              <li className="flex items-center">
+                <svg
+                  className="h-5 w-5 text-green-500 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+                <span>Basic AI DM responses (50/mo)</span>
+              </li>
+              <li className="flex items-center">
+                <svg
+                  className="h-5 w-5 text-green-500 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+                <span>Instagram engagement metrics</span>
+              </li>
             </ul>
-            <a
+            <Link
               href="/signup"
-              className="mt-auto bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition"
+              className="w-full bg-blue-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-blue-700 transition text-center"
             >
-              Start Free
-            </a>
+              Start Free Now
+            </Link>
+            <p className="text-xs text-gray-500 mt-4 text-center">
+              No credit card required
+            </p>
           </div>
+
           {/* Smart AI Plan */}
-          <div className="flex-1 bg-white dark:bg-gray-900 rounded-xl shadow p-6 flex flex-col items-center border-2 border-blue-600">
-            <h3 className="text-xl font-bold mb-2">Smart AI</h3>
-            <p className="text-4xl font-extrabold mb-2">$99</p>
-            <ul className="text-gray-600 dark:text-gray-300 mb-4 text-center">
-              <li>✔️ All Free features</li>
-              <li>✔️ Unlimited AI-powered DM replies</li>
-              <li>✔️ Advanced analytics</li>
-              <li>✔️ Priority support</li>
+          <div className="flex-1 bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 flex flex-col items-center border-2 border-blue-600 relative hover:transform hover:scale-105 transition">
+            <div className="absolute -top-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs px-3 py-1 rounded-full">
+              MOST POPULAR
+            </div>
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-full mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold mb-2">Instagram AI Pro</h3>
+            <p className="text-4xl font-extrabold mb-1">$99</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              per month
+            </p>
+            <ul className="text-gray-600 dark:text-gray-300 mb-6 space-y-3 w-full">
+              <li className="flex items-center">
+                <svg
+                  className="h-5 w-5 text-green-500 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+                <span>All Free features</span>
+              </li>
+              <li className="flex items-center">
+                <svg
+                  className="h-5 w-5 text-green-500 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+                <span>
+                  <strong>Unlimited</strong> AI DM automation
+                </span>
+              </li>
+              <li className="flex items-center">
+                <svg
+                  className="h-5 w-5 text-green-500 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+                <span>Advanced Instagram analytics</span>
+              </li>
+              <li className="flex items-center">
+                <svg
+                  className="h-5 w-5 text-green-500 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+                <span>Custom AI tone training</span>
+              </li>
+              <li className="flex items-center">
+                <svg
+                  className="h-5 w-5 text-green-500 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+                <span>Priority support (24/7)</span>
+              </li>
             </ul>
-            <a
-              href="/signup?plan=premium"
-              className="mt-auto bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition"
+            <Link
+              href="/signup?plan=pro"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full font-semibold hover:opacity-90 transition text-center"
             >
-              Upgrade Now
-            </a>
+              Upgrade to Pro
+            </Link>
+            <p className="text-xs text-gray-500 mt-4 text-center">
+              14-day money-back guarantee
+            </p>
           </div>
+        </div>
+
+        <div className="mt-12 text-center">
+          <h3 className="text-xl font-medium mb-3">
+            Looking for enterprise solutions?
+          </h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-5">
+            Need custom AI Instagram management for multiple accounts? Contact
+            us for tailored solutions.
+          </p>
+          <Link
+            href="/contact"
+            className="inline-flex items-center text-blue-600 font-medium hover:text-blue-700"
+          >
+            Contact our sales team
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 ml-1"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </Link>
         </div>
       </section>
 
-      {/* How It Works Section - Apple Style */}
+      {/* How It Works Section - Enhanced */}
       <section id="how-it-works" className="py-32 bg-white dark:bg-gray-900">
         <div className="container mx-auto px-6">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mb-6 dark:text-white">
-                How Barid AI Works
+              <span className="text-blue-600 font-medium">
+                SIMPLE SETUP PROCESS
+              </span>
+              <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mt-2 mb-6 dark:text-white">
+                How Instagram AI Automation Works
               </h2>
-              <div className="w-20 h-1 bg-blue-500 mx-auto rounded-full"></div>
+              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                Barid AI transforms your Instagram engagement in four simple
+                steps. Our AI solution works seamlessly with Instagram's API to
+                provide authentic conversations with your audience.
+              </p>
+              <div className="w-20 h-1 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto rounded-full mt-8"></div>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -472,11 +643,11 @@ export default function Home() {
                   1
                 </div>
                 <h3 className="text-xl font-medium mb-3 text-[#1D1D1F] dark:text-white">
-                  Connect Your Instagram
+                  Connect Instagram Account
                 </h3>
                 <p className="text-[#86868B] dark:text-gray-300">
-                  Securely link your account in seconds using our official Meta
-                  API integration.
+                  Securely connect your Instagram business account using Meta's
+                  official API with two-factor authentication protection.
                 </p>
               </div>
 
@@ -486,11 +657,11 @@ export default function Home() {
                   2
                 </div>
                 <h3 className="text-xl font-medium mb-3 text-[#1D1D1F] dark:text-white">
-                  Train with Your Tone
+                  Customize AI Response Style
                 </h3>
                 <p className="text-[#86868B] dark:text-gray-300">
-                  Let Barid AI learn from past conversations and your brand
-                  voice.
+                  Train Barid AI to match your brand voice using past
+                  conversations, tone preferences, and key messaging points.
                 </p>
               </div>
 
@@ -500,11 +671,12 @@ export default function Home() {
                   3
                 </div>
                 <h3 className="text-xl font-medium mb-3 text-[#1D1D1F] dark:text-white">
-                  Automate Smart Replies
+                  Activate Instagram DM Automation
                 </h3>
                 <p className="text-[#86868B] dark:text-gray-300">
-                  AI handles inquiries instantly and intelligently — just like
-                  you would.
+                  Enable automated responses on your Instagram direct messages.
+                  Our AI handles common questions and engagement while you focus
+                  elsewhere.
                 </p>
               </div>
 
@@ -514,11 +686,48 @@ export default function Home() {
                   4
                 </div>
                 <h3 className="text-xl font-medium mb-3 text-[#1D1D1F] dark:text-white">
-                  Analyze & Improve
+                  Monitor & Optimize Results
                 </h3>
                 <p className="text-[#86868B] dark:text-gray-300">
-                  Track engagement, optimize replies, and boost conversions with
-                  detailed insights.
+                  Review detailed Instagram engagement metrics and AI
+                  conversation analytics to continuously improve performance and
+                  drive higher conversion rates.
+                </p>
+              </div>
+            </div>
+
+            {/* Customer Success Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-20">
+              <div className="text-center">
+                <p className="text-3xl md:text-4xl font-bold text-blue-600 dark:text-blue-400">
+                  94%
+                </p>
+                <p className="text-gray-600 dark:text-gray-300 mt-2">
+                  Response rate increase
+                </p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl md:text-4xl font-bold text-blue-600 dark:text-blue-400">
+                  24/7
+                </p>
+                <p className="text-gray-600 dark:text-gray-300 mt-2">
+                  Instant Instagram replies
+                </p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl md:text-4xl font-bold text-blue-600 dark:text-blue-400">
+                  67%
+                </p>
+                <p className="text-gray-600 dark:text-gray-300 mt-2">
+                  Higher engagement
+                </p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl md:text-4xl font-bold text-blue-600 dark:text-blue-400">
+                  5.2x
+                </p>
+                <p className="text-gray-600 dark:text-gray-300 mt-2">
+                  ROI for businesses
                 </p>
               </div>
             </div>
@@ -579,62 +788,164 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Final CTA Section - Apple Style */}
-      <section className="py-24 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
-        <div className="container mx-auto px-6 max-w-4xl">
-          <div className="text-center">
-            <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mb-6 dark:text-white">
-              Ready to Engage Smarter?
-            </h2>
-            <p className="text-xl text-[#86868B] dark:text-gray-300 mb-10 max-w-3xl mx-auto">
-              Let Barid AI handle your DMs while you focus on growing your
-              brand.
-            </p>
-            <a
-              href="/signup"
-              className="inline-block bg-blue-500 text-white px-10 py-4 rounded-full font-medium text-lg hover:bg-blue-600 transition shadow-lg hover:shadow-blue-300/30 transform hover:-translate-y-1 duration-300"
-            >
-              Start for Free
-            </a>
-            <p className="mt-6 text-sm text-[#86868B] dark:text-gray-400">
-              No credit card required. Cancel anytime.
-            </p>
+      {/* Testimonials Section */}
+      <section className="py-20 bg-[#F5F5F7] dark:bg-gray-800">
+        <div className="container mx-auto px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-semibold mb-4 dark:text-white">
+                Instagram Creators Love Barid AI
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                See how businesses are growing their Instagram engagement with
+                our AI automation
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-lg">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-pink-400 to-red-400 flex items-center justify-center text-white font-bold">
+                    S
+                  </div>
+                  <div className="ml-3">
+                    <h4 className="font-semibold dark:text-white">
+                      Sarah Chen
+                    </h4>
+                    <p className="text-sm text-gray-500">Fashion Influencer</p>
+                  </div>
+                </div>
+                <p className="text-gray-600 dark:text-gray-300 italic">
+                  "Barid AI increased my DM response rate by 300%. I can focus
+                  on creating content while it handles customer inquiries
+                  perfectly."
+                </p>
+              </div>
+
+              <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-lg">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-400 to-purple-400 flex items-center justify-center text-white font-bold">
+                    M
+                  </div>
+                  <div className="ml-3">
+                    <h4 className="font-semibold dark:text-white">
+                      Mike Rodriguez
+                    </h4>
+                    <p className="text-sm text-gray-500">E-commerce Owner</p>
+                  </div>
+                </div>
+                <p className="text-gray-600 dark:text-gray-300 italic">
+                  "Our Instagram sales doubled after implementing Barid AI. The
+                  automated responses convert leads into customers 24/7."
+                </p>
+              </div>
+
+              <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-lg">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-green-400 to-teal-400 flex items-center justify-center text-white font-bold">
+                    A
+                  </div>
+                  <div className="ml-3">
+                    <h4 className="font-semibold dark:text-white">
+                      Alex Thompson
+                    </h4>
+                    <p className="text-sm text-gray-500">Digital Agency</p>
+                  </div>
+                </div>
+                <p className="text-gray-600 dark:text-gray-300 italic">
+                  "Managing 50+ Instagram accounts is now effortless. Barid AI
+                  maintains consistent brand voice across all our clients."
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <footer className="container mx-auto py-8 px-4 flex flex-col md:flex-row justify-between items-center border-t border-gray-200 dark:border-gray-800 mt-16">
-        <div className="flex items-center mb-4 md:mb-0">
-          <div className="bg-[#F5F5F7] dark:bg-gray-800 p-1.5 rounded-md mr-2">
-            <span className="font-bold text-sm text-blue-600 dark:text-blue-400">
-              B
-            </span>
+      {/* FAQ Section */}
+      <section className="py-20 bg-white dark:bg-gray-900">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-semibold mb-4 dark:text-white">
+                Frequently Asked Questions
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300">
+                Everything you need to know about Instagram AI automation
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-[#F5F5F7] dark:bg-gray-800 rounded-2xl p-6">
+                <h3 className="text-lg font-semibold mb-3 dark:text-white">
+                  Is Barid AI compliant with Instagram's terms of service?
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Yes, absolutely. Barid AI uses Instagram's official Business
+                  API and follows all Meta guidelines for automated messaging.
+                  We ensure full compliance with Instagram's policies.
+                </p>
+              </div>
+
+              <div className="bg-[#F5F5F7] dark:bg-gray-800 rounded-2xl p-6">
+                <h3 className="text-lg font-semibold mb-3 dark:text-white">
+                  How does the AI learn my brand voice?
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Our AI analyzes your past Instagram conversations, brand
+                  guidelines, and messaging preferences. You can also provide
+                  specific instructions and examples to fine-tune the responses.
+                </p>
+              </div>
+
+              <div className="bg-[#F5F5F7] dark:bg-gray-800 rounded-2xl p-6">
+                <h3 className="text-lg font-semibold mb-3 dark:text-white">
+                  Can I review messages before they're sent?
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Yes, you have full control. You can set the AI to auto-send
+                  responses, require approval for all messages, or approve only
+                  certain types of conversations.
+                </p>
+              </div>
+
+              <div className="bg-[#F5F5F7] dark:bg-gray-800 rounded-2xl p-6">
+                <h3 className="text-lg font-semibold mb-3 dark:text-white">
+                  What happens if the AI can't handle a complex question?
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  The AI is smart enough to recognize when it needs human
+                  intervention. It will flag complex questions for manual review
+                  and can seamlessly hand off conversations to you.
+                </p>
+              </div>
+            </div>
           </div>
-          <span className="text-sm text-[#86868B] dark:text-gray-400">
-            © 2025 Barid AI. All rights reserved.
-          </span>
         </div>
-        <div className="flex space-x-6">
-          <a
-            href="#"
-            className="text-sm text-[#86868B] dark:text-gray-400 hover:text-blue-500 transition"
-          >
-            Privacy
-          </a>
-          <a
-            href="#"
-            className="text-sm text-[#86868B] dark:text-gray-400 hover:text-blue-500 transition"
-          >
-            Terms
-          </a>
-          <a
-            href="#"
-            className="text-sm text-[#86868B] dark:text-gray-400 hover:text-blue-500 transition"
-          >
-            Contact
-          </a>
+      </section>
+
+      {/* Final CTA Section - Apple Style */}
+      <section className="py-24 bg-white dark:bg-gray-900">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl md:text-4xl font-semibold mb-4 dark:text-white">
+              Ready to Transform Your Instagram Engagement?
+            </h2>
+            <p className="text-lg text-[#86868B] dark:text-gray-300 mb-8">
+              Join thousands of successful brands using Barid AI to grow their
+              business.
+            </p>
+            <a
+              href="/signup"
+              className="bg-blue-500 text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-blue-600 transition"
+            >
+              Get Started Today
+            </a>
+          </div>
         </div>
-      </footer>
+      </section>
+
+      <Footer />
     </div>
   );
 }

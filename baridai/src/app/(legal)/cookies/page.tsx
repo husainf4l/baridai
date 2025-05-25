@@ -22,11 +22,11 @@ export default function CookiePolicy() {
           <div className="prose prose-lg dark:prose-invert max-w-none">
             <h2>Introduction</h2>
             <p>
-              This Cookie Policy explains how Barid AI ("we", "us", "our"), a
-              product of ROXATE LTD (UK Registered Company No. 16232608), uses
-              cookies and similar technologies when you visit our website
-              (baridai.com) and use our services. This policy should be read
-              alongside our{" "}
+              This Cookie Policy explains how Barid AI (&quot;we&quot;,
+              &quot;us&quot;, &quot;our&quot;), a product of ROXATE LTD (UK
+              Registered Company No. 16232608), uses cookies and similar
+              technologies when you visit our website (baridai.com) and use our
+              services. This policy should be read alongside our{" "}
               <Link
                 href="/privacy"
                 className="text-blue-500 hover:text-blue-600"
@@ -103,9 +103,9 @@ export default function CookiePolicy() {
             <p>
               As our service integrates with Instagram and other Meta platforms,
               you may encounter cookies related to Meta services. These cookies
-              are subject to Meta's own cookie policies and are not controlled
-              by Barid AI. They help facilitate proper functioning of the
-              Instagram integration and authentication processes.
+              are subject to Meta&apos;s own cookie policies and are not
+              controlled by Barid AI. They help facilitate proper functioning of
+              the Instagram integration and authentication processes.
             </p>
 
             <h2>Managing Cookies</h2>
@@ -196,9 +196,10 @@ export default function CookiePolicy() {
 
             <h2>Do Not Track</h2>
             <p>
-              Some browsers offer a "Do Not Track" feature. Our website does not
-              currently respond to Do Not Track signals, but you can manage
-              tracking through your browser settings and cookie preferences.
+              Some browsers offer a &quot;Do Not Track&quot; feature. Our
+              website does not currently respond to Do Not Track signals, but
+              you can manage tracking through your browser settings and cookie
+              preferences.
             </p>
 
             <h2>Updates to This Cookie Policy</h2>

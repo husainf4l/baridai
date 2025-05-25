@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -47,7 +48,7 @@ export default function InstagramDashboard({
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
 
   // Fetch Instagram media
-  const fetchMedia = async () => {
+  const fetchMedia = React.useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -59,20 +60,24 @@ export default function InstagramDashboard({
       if (response.data && response.data.length > 0) {
         setSelectedMedia(response.data[0].id);
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch Instagram media");
+    } catch (err: unknown) {
+      const errorMessage =
+        err && typeof err === "object" && "message" in err
+          ? String(err.message)
+          : "Failed to fetch Instagram media";
+      setError(errorMessage);
       console.error("Error fetching Instagram media:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, accessToken]);
 
   // Fetch media on component mount
   useEffect(() => {
     if (userId && accessToken) {
       fetchMedia();
     }
-  }, [userId, accessToken]);
+  }, [userId, accessToken, fetchMedia]);
 
   return (
     <div className="space-y-6">
@@ -179,10 +184,13 @@ export default function InstagramDashboard({
                   onClick={() => setSelectedMedia(item.id)}
                 >
                   <div className="aspect-square relative overflow-hidden">
-                    <img
+                    <Image
                       src={item.thumbnail_url || item.media_url}
                       alt={item.caption || "Instagram media"}
-                      className="object-cover w-full h-full"
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      priority={false}
                     />
                   </div>
                   <CardContent className="p-4">

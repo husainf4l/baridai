@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (token && storedUser) {
           console.log("Found stored user:", JSON.parse(storedUser));
           console.log("Found auth token:", token.substring(0, 20) + "...");
-          
+
           // Always validate token with backend before accepting it
           try {
             const isValid = await AuthService.verifyTokenWithBackend();
@@ -74,7 +74,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         } else if (!token && storedUser) {
           // If we have user data but no token, clear it and require re-authentication
-          console.log("Found user data but no token - requiring re-authentication");
+          console.log(
+            "Found user data but no token - requiring re-authentication"
+          );
           localStorage.removeItem("user");
         }
       } catch (error) {
@@ -229,20 +231,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         router.push("/app");
 
         return true;
-      } catch (apiError: any) {
+      } catch (apiError: unknown) {
         // Handle API errors
         console.error("API login error:", apiError);
 
         // Display appropriate error based on connection status
-        if (apiError.message && apiError.message.includes("NetworkError") || 
-            apiError.message && apiError.message.includes("Failed to fetch") ||
-            apiError.name === "AbortError") {
-          throw new Error("Backend server is unavailable. Please try again later.");
+        if (typeof apiError === "object" && apiError !== null) {
+          const err = apiError as { message?: string; name?: string };
+          if (
+            (err.message && err.message.includes("NetworkError")) ||
+            (err.message && err.message.includes("Failed to fetch")) ||
+            err.name === "AbortError"
+          ) {
+            throw new Error(
+              "Backend server is unavailable. Please try again later."
+            );
+          }
         }
         // In all cases, rethrow the error for proper handling
         throw apiError;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Login failed:", error);
       throw error;
     } finally {
@@ -338,15 +347,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         router.push("/app/home");
 
         return true;
-      } catch (apiError: any) {
+      } catch (apiError: unknown) {
         // Handle API errors
         console.error("API registration error:", apiError);
 
         // Display appropriate error based on connection status
-        if (apiError.message && apiError.message.includes("NetworkError") || 
-            apiError.message && apiError.message.includes("Failed to fetch") ||
-            apiError.name === "AbortError") {
-          throw new Error("Backend server is unavailable. Please try again later.");
+        if (typeof apiError === "object" && apiError !== null) {
+          const err = apiError as { message?: string; name?: string };
+          if (
+            (err.message && err.message.includes("NetworkError")) ||
+            (err.message && err.message.includes("Failed to fetch")) ||
+            err.name === "AbortError"
+          ) {
+            throw new Error(
+              "Backend server is unavailable. Please try again later."
+            );
+          }
         }
         // In all cases, rethrow the error for proper handling
         throw apiError;

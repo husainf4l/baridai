@@ -38,40 +38,51 @@ export default function InstagramInsights({
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchInsights = async (
-    metrics: string[] = ["engagement", "impressions", "reach"]
-  ) => {
-    setLoading(true);
-    setError(null);
+  const fetchInsights = React.useCallback(
+    async (metrics: string[] = ["engagement", "impressions", "reach"]) => {
+      setLoading(true);
+      setError(null);
 
-    try {
-      const insightsData = await getMediaInsights(
-        mediaId,
-        accessToken,
-        metrics
-      );
+      try {
+        const insightsData = await getMediaInsights(
+          mediaId,
+          accessToken,
+          metrics
+        );
 
-      // Transform API response into a format suitable for charts
-      const formattedData = insightsData.data.map((item: any) => ({
-        name: item.name,
-        value: item.values[0].value,
-        title: item.title,
-      }));
+        // Transform API response into a format suitable for charts
+        interface InsightItem {
+          name: string;
+          values: Array<{ value: number }>;
+          title: string;
+        }
 
-      setInsights(formattedData);
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch insights data");
-    } finally {
-      setLoading(false);
-    }
-  };
+        const formattedData = insightsData.data.map((item: InsightItem) => ({
+          name: item.name,
+          value: item.values[0].value,
+          title: item.title,
+        }));
+
+        setInsights(formattedData);
+      } catch (err: unknown) {
+        const errorMessage =
+          err && typeof err === "object" && "message" in err
+            ? String(err.message)
+            : "Failed to fetch insights data";
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [mediaId, accessToken]
+  );
 
   // Fetch insights when component mounts
   React.useEffect(() => {
     if (mediaId && accessToken) {
       fetchInsights();
     }
-  }, [mediaId, accessToken]);
+  }, [mediaId, accessToken, fetchInsights]);
 
   return (
     <Card>

@@ -1,9 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/providers/auth-context";
 
 export default function Signup() {
@@ -14,7 +12,6 @@ export default function Signup() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const router = useRouter();
 
   const { signup } = useAuth();
 
@@ -67,29 +64,20 @@ export default function Signup() {
       );
 
       // The auth context will handle redirection and token storage
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Signup error:", err);
 
       // Check for common API errors and provide user-friendly messages
-      if (
-        err.message?.includes("already exists") ||
-        err.message?.includes("already taken")
-      ) {
-        setError(
-          "Username or email already in use. Please try a different one."
-        );
-      } else if (
-        err.message?.includes("network") ||
-        err.message?.includes("connect")
-      ) {
-        setError(
-          "Cannot connect to the server. Please check your internet connection and try again."
-        );
+      if (err && typeof err === 'object' && 'message' in err && typeof err.message === 'string') {
+        if (err.message.includes("already exists") || err.message.includes("already taken")) {
+          setError("Username or email already in use. Please try a different one.");
+        } else if (err.message.includes("network") || err.message.includes("connect")) {
+          setError("Cannot connect to the server. Please check your internet connection and try again.");
+        } else {
+          setError(err.message || "There was a problem creating your account. Please try again.");
+        }
       } else {
-        setError(
-          err.message ||
-            "There was a problem creating your account. Please try again."
-        );
+        setError("There was a problem creating your account. Please try again.");
       }
     } finally {
       setIsLoading(false);

@@ -1,11 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/providers/auth-context";
 import { useRouter } from "next/navigation";
-import { AuthService } from "@/services/auth-service";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -95,20 +93,30 @@ export default function Login() {
         }
         setLoginSuccess(true);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Login error:", err);
 
       // Handle specific error messages
       if (
-        err.message &&
-        err.message.includes("Backend server is unavailable")
+        err &&
+        typeof err === "object" &&
+        "message" in err &&
+        typeof (err as { message?: string }).message === "string" &&
+        (err as { message: string }).message.includes(
+          "Backend server is unavailable"
+        )
       ) {
         setError(
           "Authentication server is currently unavailable. Please try again later."
         );
       } else {
         setError(
-          err.message || "Invalid username or password. Please try again."
+          typeof err === "object" &&
+            err !== null &&
+            "message" in err &&
+            typeof (err as { message?: string }).message === "string"
+            ? (err as { message: string }).message
+            : "Invalid username or password. Please try again."
         );
       }
     }
@@ -223,7 +231,7 @@ export default function Login() {
             </form>{" "}
             <div className="mt-8 text-center">
               <p className="text-blue-200">
-                Don't have an account?{" "}
+                Don&apos;t have an account?{" "}
                 <Link
                   href="/signup"
                   className="text-blue-300 hover:text-blue-200 font-medium"

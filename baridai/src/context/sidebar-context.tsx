@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import { usePathname } from "next/navigation";
 
 type SidebarState = {
@@ -44,7 +50,7 @@ export function SidebarProvider({
   // Initialize with defaults but allow override for collapsed state
   const [state, setState] = useState<SidebarState>(() => {
     // Try to load saved preferences from localStorage
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       try {
         const savedPrefs = localStorage.getItem(SIDEBAR_STORAGE_KEY);
         if (savedPrefs) {
@@ -55,7 +61,7 @@ export function SidebarProvider({
           };
         }
       } catch (error) {
-        console.error('Error loading sidebar preferences:', error);
+        console.error("Error loading sidebar preferences:", error);
       }
     }
     return {
@@ -63,7 +69,7 @@ export function SidebarProvider({
       collapsed: defaultCollapsed,
     };
   });
-  
+
   const pathname = usePathname();
 
   // Effect for mobile detection
@@ -109,32 +115,6 @@ export function SidebarProvider({
     return () => document.removeEventListener("keydown", handleEscape);
   }, [state.isMobile, state.open]);
 
-  // Effect for global keyboard shortcut (Ctrl+B toggle)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === SIDEBAR_KEYBOARD_SHORTCUT && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        toggleSidebar();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
-  // Effect to save preferences when they change
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(SIDEBAR_STORAGE_KEY, JSON.stringify({
-          collapsed: state.collapsed,
-        }));
-      } catch (error) {
-        console.error('Error saving sidebar preferences:', error);
-      }
-    }
-  }, [state.collapsed]);
-
   const toggleSidebar = useCallback(() => {
     setState((prev) => ({ ...prev, open: !prev.open }));
   }, []);
@@ -154,6 +134,35 @@ export function SidebarProvider({
   const setLastFocused = useCallback((id: string) => {
     setState((prev) => ({ ...prev, lastFocused: id }));
   }, []);
+
+  // Effect for global keyboard shortcut (Ctrl+B toggle)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === SIDEBAR_KEYBOARD_SHORTCUT && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        toggleSidebar();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [toggleSidebar]);
+
+  // Effect to save preferences when they change
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(
+          SIDEBAR_STORAGE_KEY,
+          JSON.stringify({
+            collapsed: state.collapsed,
+          })
+        );
+      } catch (error) {
+        console.error("Error saving sidebar preferences:", error);
+      }
+    }
+  }, [state.collapsed]);
 
   return (
     <SidebarContext.Provider

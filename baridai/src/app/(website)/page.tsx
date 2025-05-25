@@ -169,7 +169,7 @@ export default function Home() {
                     <div className="flex justify-start mb-4">
                       <div className="bg-[#F5F5F7] rounded-2xl p-3 max-w-xs animate-fadeIn">
                         <p className="text-[#1D1D1F] text-sm">
-                          Hi! I'm interested in your new summer collection. Do
+                          Hi! I&apos;m interested in your new summer collection. Do
                           you ship internationally?
                         </p>
                         <span className="text-xs text-[#86868B] mt-1 block">
@@ -199,7 +199,7 @@ export default function Home() {
                     <div className="flex justify-start mb-4">
                       <div className="bg-[#F5F5F7] rounded-2xl p-3 max-w-xs animate-fadeIn delay-300">
                         <p className="text-[#1D1D1F] text-sm">
-                          That's great! What's the estimated delivery time to
+                          That&apos;s great! What&apos;s the estimated delivery time to
                           France? And do you have the new Ocean Breeze necklace
                           in stock?
                         </p>
@@ -630,7 +630,7 @@ export default function Home() {
               </h2>
               <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
                 Barid AI transforms your Instagram engagement in four simple
-                steps. Our AI solution works seamlessly with Instagram's API to
+                steps. Our AI solution works seamlessly with Instagram&apos;s API to
                 provide authentic conversations with your audience.
               </p>
               <div className="w-20 h-1 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto rounded-full mt-8"></div>
@@ -646,7 +646,7 @@ export default function Home() {
                   Connect Instagram Account
                 </h3>
                 <p className="text-[#86868B] dark:text-gray-300">
-                  Securely connect your Instagram business account using Meta's
+                  Securely connect your Instagram business account using Meta&apos;s
                   official API with two-factor authentication protection.
                 </p>
               </div>
@@ -765,7 +765,7 @@ export default function Home() {
                       Seamless Experience
                     </h3>
                     <p className="text-[#86868B] mb-6">
-                      From setup to automation, we've designed every step with
+                      From setup to automation, we&apos;ve designed every step with
                       simplicity in mind. Get your Instagram DMs on autopilot in
                       minutes, not days.
                     </p>
@@ -816,9 +816,9 @@ export default function Home() {
                   </div>
                 </div>
                 <p className="text-gray-600 dark:text-gray-300 italic">
-                  "Barid AI increased my DM response rate by 300%. I can focus
+                  &quot;Barid AI increased my DM response rate by 300%. I can focus
                   on creating content while it handles customer inquiries
-                  perfectly."
+                  perfectly.&quot;
                 </p>
               </div>
 
@@ -835,8 +835,8 @@ export default function Home() {
                   </div>
                 </div>
                 <p className="text-gray-600 dark:text-gray-300 italic">
-                  "Our Instagram sales doubled after implementing Barid AI. The
-                  automated responses convert leads into customers 24/7."
+                  &quot;Our Instagram sales doubled after implementing Barid AI. The
+                  automated responses convert leads into customers 24/7.&quot;
                 </p>
               </div>
 
@@ -853,8 +853,8 @@ export default function Home() {
                   </div>
                 </div>
                 <p className="text-gray-600 dark:text-gray-300 italic">
-                  "Managing 50+ Instagram accounts is now effortless. Barid AI
-                  maintains consistent brand voice across all our clients."
+                  &quot;Managing 50+ Instagram accounts is now effortless. Barid AI
+                  maintains consistent brand voice across all our clients.&quot;
                 </p>
               </div>
             </div>
@@ -878,12 +878,12 @@ export default function Home() {
             <div className="space-y-6">
               <div className="bg-[#F5F5F7] dark:bg-gray-800 rounded-2xl p-6">
                 <h3 className="text-lg font-semibold mb-3 dark:text-white">
-                  Is Barid AI compliant with Instagram's terms of service?
+                  Is Barid AI compliant with Instagram&apos;s terms of service?
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300">
-                  Yes, absolutely. Barid AI uses Instagram's official Business
+                  Yes, absolutely. Barid AI uses Instagram&apos;s official Business
                   API and follows all Meta guidelines for automated messaging.
-                  We ensure full compliance with Instagram's policies.
+                  We ensure full compliance with Instagram&apos;s policies.
                 </p>
               </div>
 
@@ -900,7 +900,7 @@ export default function Home() {
 
               <div className="bg-[#F5F5F7] dark:bg-gray-800 rounded-2xl p-6">
                 <h3 className="text-lg font-semibold mb-3 dark:text-white">
-                  Can I review messages before they're sent?
+                  Can I review messages before they&apos;re sent?
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300">
                   Yes, you have full control. You can set the AI to auto-send
@@ -911,7 +911,7 @@ export default function Home() {
 
               <div className="bg-[#F5F5F7] dark:bg-gray-800 rounded-2xl p-6">
                 <h3 className="text-lg font-semibold mb-3 dark:text-white">
-                  What happens if the AI can't handle a complex question?
+                  What happens if the AI can&apos;t handle a complex question?
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300">
                   The AI is smart enough to recognize when it needs human
@@ -935,12 +935,12 @@ export default function Home() {
               Join thousands of successful brands using Barid AI to grow their
               business.
             </p>
-            <a
+            <Link
               href="/signup"
               className="bg-blue-500 text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-blue-600 transition"
             >
               Get Started Today
-            </a>
+            </Link>
           </div>
         </div>
       </section>

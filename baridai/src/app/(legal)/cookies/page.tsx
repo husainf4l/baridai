@@ -42,127 +42,77 @@ export default function CookiePolicy() {
 
             <h2>What Are Cookies?</h2>
             <p>
-              Cookies are small text files that are stored on your browser or
-              device when you visit a website. They allow websites to recognize
-              your device and remember information about your visit, such as
-              your preferences or login information. Cookies are widely used to
-              make websites work more efficiently and provide valuable
-              information to website owners.
+              Cookies are small text files placed on your device by websites you
+              visit. They are widely used to make websites work, improve
+              efficiency, and provide information to site owners. Cookies can be
+              session-based (deleted when you close your browser) or persistent
+              (remain until they expire or are deleted).
             </p>
 
             <h2>Types of Cookies We Use</h2>
-            <p>We use the following types of cookies on our website:</p>
-
-            <h3>Essential Cookies</h3>
-            <p>
-              These cookies are necessary for the website to function properly.
-              They enable basic functions like page navigation, secure areas
-              access, and account authentication. The website cannot function
-              properly without these cookies, and they can only be disabled by
-              changing your browser preferences.
-            </p>
             <ul>
               <li>
-                <strong>Session Cookies:</strong> These temporary cookies are
-                erased when you close your browser and do not collect
-                information from your device.
+                <strong>Essential Cookies:</strong> Necessary for the website to
+                function, such as authentication and security. You cannot opt
+                out of these cookies.
               </li>
               <li>
-                <strong>Authentication Cookies:</strong> These cookies help us
-                identify registered users to provide access to secured content
-                and features.
-              </li>
-            </ul>
-
-            <h3>Analytical/Performance Cookies</h3>
-            <p>
-              These cookies allow us to recognize and count the number of
-              visitors and see how visitors move around our website. This helps
-              us improve website performance and ensure users can easily find
-              what they're looking for.
-            </p>
-            <ul>
-              <li>
-                <strong>Google Analytics:</strong> We use Google Analytics to
-                collect anonymous information about how visitors use our
-                website. This helps us understand which parts of our site are
-                most popular and identify areas for improvement.
+                <strong>Performance/Analytics Cookies:</strong> Help us
+                understand how visitors interact with our website, so we can
+                improve user experience. For example, we use Google Analytics to
+                collect anonymous usage data.
               </li>
               <li>
-                <strong>Performance Tracking:</strong> These cookies collect
-                information about page load times, error messages, and other
-                performance-related data.
-              </li>
-            </ul>
-
-            <h3>Functionality Cookies</h3>
-            <p>
-              These cookies enable enhanced functionality and personalization,
-              such as remembering your preferences and settings (like language
-              or region), or providing features like live chats.
-            </p>
-
-            <h3>Targeting/Advertising Cookies</h3>
-            <p>
-              These cookies are used to deliver advertisements that are relevant
-              to you and your interests. They are also used to limit the number
-              of times you see an advertisement and measure the effectiveness of
-              advertising campaigns.
-            </p>
-            <ul>
-              <li>
-                <strong>Social Media Cookies:</strong> Our site includes
-                features from social media platforms (like "Share" or "Like"
-                buttons) that may set cookies when you use these features.
+                <strong>Functionality Cookies:</strong> Enable enhanced features
+                and personalization, such as remembering your preferences.
               </li>
               <li>
-                <strong>Marketing Cookies:</strong> These cookies track your
-                online activity to help advertisers deliver more relevant
-                advertising or limit the number of times you see an ad.
+                <strong>Advertising/Targeting Cookies:</strong> Used to deliver
+                relevant ads and track the effectiveness of our marketing
+                campaigns. These may be set by us or third-party providers.
+              </li>
+              <li>
+                <strong>Social Media Cookies:</strong> Enable sharing and
+                integration with social media platforms, such as Instagram and
+                Facebook.
               </li>
             </ul>
 
             <h2>Third-Party Cookies</h2>
             <p>
-              In addition to our own cookies, we may also use various
-              third-party cookies to report usage statistics, deliver
-              advertisements, and so on. These cookies may include:
+              We may allow third-party service providers to set cookies on your
+              device for analytics, advertising, and social media integration.
+              These providers include, but are not limited to:
             </p>
             <ul>
               <li>Google Analytics</li>
-              <li>Facebook Pixel</li>
+              <li>Meta/Facebook Pixel</li>
               <li>LinkedIn Insights</li>
-              <li>Intercom or other customer service platforms</li>
               <li>Payment processors</li>
+              <li>Customer support platforms</li>
             </ul>
             <p>
               These third parties may use cookies, web beacons, and similar
               technologies to collect or receive information from our website
               and elsewhere on the internet to provide measurement services and
-              target ads.
+              target ads. Their use of your data is governed by their own
+              privacy and cookie policies.
             </p>
 
-            <h2>Meta Platform Cookies</h2>
+            <h2>Meta/Instagram Platform Cookies</h2>
             <p>
               As our service integrates with Instagram and other Meta platforms,
-              you may encounter cookies related to Meta services when using
-              Barid AI. These cookies are subject to Meta's own cookie policies
-              and are not controlled by Barid AI. They help facilitate proper
-              functioning of the Instagram integration and authentication
-              processes.
+              you may encounter cookies related to Meta services. These cookies
+              are subject to Meta's own cookie policies and are not controlled
+              by Barid AI. They help facilitate proper functioning of the
+              Instagram integration and authentication processes.
             </p>
 
-            <h2>Cookie Management</h2>
-            <h3>Browser Settings</h3>
+            <h2>Managing Cookies</h2>
             <p>
-              Most web browsers allow you to manage your cookie preferences. You
-              can set your browser to refuse cookies or delete certain cookies.
-              Generally, you can also manage similar technologies in the same
-              way that you manage cookies using your browser's settings.
-            </p>
-            <p>
-              You can find information on how to manage cookies in your browser
-              here:
+              You can control and manage cookies in your browser settings. Most
+              browsers allow you to refuse or delete cookies. However, disabling
+              essential cookies may affect the functionality of our website.
             </p>
             <ul>
               <li>
@@ -206,19 +156,9 @@ export default function CookiePolicy() {
                 </a>
               </li>
             </ul>
-
-            <h3>Our Cookie Banner</h3>
             <p>
-              When you first visit our website, you will be shown a cookie
-              banner that allows you to accept or decline non-essential cookies.
-              You can change your preferences at any time by clicking on "Cookie
-              Preferences" in the website footer.
-            </p>
-
-            <h3>Opting Out of Specific Third-Party Cookies</h3>
-            <p>
-              For cookies that are used for advertising purposes, you can also
-              opt out via:
+              You may also opt out of certain third-party cookies for
+              advertising purposes via:
             </p>
             <ul>
               <li>
@@ -256,11 +196,9 @@ export default function CookiePolicy() {
 
             <h2>Do Not Track</h2>
             <p>
-              Some browsers have a "Do Not Track" feature that lets you tell
-              websites that you do not want to have your online activities
-              tracked. Currently, there is no standard for how online services
-              should respond to "Do Not Track" signals, but we honor them when
-              technically possible.
+              Some browsers offer a "Do Not Track" feature. Our website does not
+              currently respond to Do Not Track signals, but you can manage
+              tracking through your browser settings and cookie preferences.
             </p>
 
             <h2>Updates to This Cookie Policy</h2>
@@ -276,11 +214,8 @@ export default function CookiePolicy() {
             <p>
               If you have any questions about our use of cookies or this Cookie
               Policy, please contact us at:
-            </p>
-            <p>
-              Email: privacy@roxate.com
               <br />
-              Phone: +447822015226
+              Email: privacy@roxate.com
               <br />
               Address: ROXATE LTD, 71-75 Shelton Street, Covent Garden, London,
               United Kingdom, WC2H 9JQ

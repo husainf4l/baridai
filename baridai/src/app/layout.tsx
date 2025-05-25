@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/providers/auth-context";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 
-const geistSans = Geist({
+// Initialize fonts but use them directly 
+const geist = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
@@ -28,12 +29,12 @@ export default function RootLayout({
 }>) {
   return (
     <AuthProvider>
-      <html lang="en" suppressHydrationWarning>
-        <head />
+      <html lang="en" suppressHydrationWarning className={`${geist.variable} ${geistMono.variable}`}>
         <body>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
+            enableSystem
             disableTransitionOnChange
           >
             {children}

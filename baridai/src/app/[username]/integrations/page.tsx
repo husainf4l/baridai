@@ -1,12 +1,220 @@
 "use client";
 
-import React from "react";
-import { MessageCircle, Camera, Share2 } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import {
+  MessageCircle,
+  Camera,
+  Share2,
+  CheckCircle,
+  Edit2,
+  Trash2,
+  Calendar,
+  Clock,
+} from "lucide-react";
+import {
+  getIntegrations,
+  Integration,
+  addIntegration,
+} from "@/services/integrations-service";
 
 export default function IntegrationsPage() {
+  const [connectedPlatforms, setConnectedPlatforms] = useState<
+    Record<string, boolean>
+  >({
+    Instagram: false,
+    WhatsApp: false,
+    Facebook: false,
+  });
+  const [isConnecting, setIsConnecting] = useState<string | null>(null);
+  const [integrations, setIntegrations] = useState<Integration[]>([]);
+  const [isLoadingIntegrations, setIsLoadingIntegrations] = useState(true);
+
+  useEffect(() => {
+    // Check for existing Instagram authentication in localStorage
+    const instagramAuthCode = localStorage.getItem("instagram_auth_code");
+    if (instagramAuthCode) {
+      setConnectedPlatforms((prev) => ({ ...prev, Instagram: true }));
+    }
+
+    // Listen for messages from the authentication popup
+    const handleAuthMessage = async (event: MessageEvent) => {
+      if (event.data.type === "META_AUTH_SUCCESS") {
+        console.log("Instagram authentication successful");
+        setConnectedPlatforms((prev) => ({ ...prev, Instagram: true }));
+        setIsConnecting(null);
+
+        // Move integration logic to the service
+        const jwtToken = localStorage.getItem("access_token");
+        const { accessToken, expiresAt, instagramId } = event.data;
+        if (jwtToken && accessToken && expiresAt) {
+          try {
+            await addIntegration(
+              {
+                name: "INSTAGRAM",
+                token: accessToken,
+                expiresAt,
+                instagramId,
+              },
+              jwtToken
+            );
+            // Refresh integrations list
+            const integrations = await getIntegrations(jwtToken);
+            setIntegrations(integrations);
+          } catch (err) {
+            console.error("Failed to add integration", err);
+          }
+        }
+      } else if (event.data.type === "META_AUTH_ERROR") {
+        console.error("Instagram authentication error:", event.data.error);
+        setIsConnecting(null);
+        alert(`Authentication failed: ${event.data.error}`);
+      }
+    };
+
+    window.addEventListener("message", handleAuthMessage);
+    return () => window.removeEventListener("message", handleAuthMessage);
+  }, []);
+
+  useEffect(() => {
+    console.log("=== INTEGRATIONS PAGE USEEFFECT ===");
+
+    // Fetch available integrations from the service
+    const jwtToken = localStorage.getItem("access_token");
+    console.log("JWT Token found:", !!jwtToken);
+    console.log("JWT Token value:", jwtToken);
+    console.log("API Base URL:", process.env.NEXT_PUBLIC_API_URL);
+
+    if (jwtToken) {
+      console.log("About to fetch integrations...");
+      setIsLoadingIntegrations(true);
+      getIntegrations(jwtToken)
+        .then((data) => {
+          console.log("Fetched integrations successfully:", data);
+          console.log("Data type:", typeof data);
+          console.log("Is array:", Array.isArray(data));
+
+          // Ensure data is an array
+          const integrationsList = Array.isArray(data) ? data : [];
+          setIntegrations(integrationsList);
+
+          // Update connectedPlatforms based on integrations
+          const platforms: Record<string, boolean> = {
+            Instagram: false,
+            WhatsApp: false,
+            Facebook: false,
+          };
+          integrationsList.forEach((integration) => {
+            if (integration.name === "INSTAGRAM") platforms.Instagram = true;
+            if (integration.name === "WHATSAPP") platforms.WhatsApp = true;
+            if (integration.name === "FACEBOOK") platforms.Facebook = true;
+          });
+          setConnectedPlatforms(platforms);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch integrations", err);
+          if (err.response) {
+            console.error(
+              "Error details:",
+              err.response.data,
+              err.response.status
+            );
+          } else if (err.request) {
+            console.error("No response received:", err.request);
+          } else {
+            console.error("Error setting up request:", err.message);
+          }
+          console.error("Full error object:", err);
+        })
+        .finally(() => {
+          setIsLoadingIntegrations(false);
+        });
+    } else {
+      console.log("No JWT token found in localStorage");
+      console.log("All localStorage keys:", Object.keys(localStorage));
+      setIsLoadingIntegrations(false);
+    }
+  }, []);
+
+  const handleMetaAuthentication = () => {
+    setIsConnecting("Instagram");
+
+    // Instagram authentication flow using the Instagram app ID from env variables
+    const instagramAppId = process.env.NEXT_PUBLIC_INSTAGRAM_APP_ID;
+    const ngrokUrl = process.env.NEXT_PUBLIC_NGROK_URL;
+
+    if (!instagramAppId) {
+      console.error("Instagram App ID not found in environment variables");
+      setIsConnecting(null);
+      return;
+    }
+
+    if (!ngrokUrl) {
+      console.error("Ngrok URL not found in environment variables");
+      setIsConnecting(null);
+      return;
+    }
+
+    // Use ngrok URL for redirect since Instagram needs HTTPS
+    const redirectUri = encodeURIComponent(`${ngrokUrl}/auth/callback`);
+
+    // Instagram Basic Display API scopes
+    const scope = encodeURIComponent("user_profile,user_media");
+
+    // Instagram Basic Display OAuth URL
+    const authUrl = `https://api.instagram.com/oauth/authorize?client_id=${instagramAppId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
+
+    console.log("Instagram OAuth URL:", authUrl);
+    console.log("Redirect URI:", `${ngrokUrl}/auth/callback`);
+
+    // Open Instagram OAuth dialog in a popup window
+    window.open(authUrl, "instagram_login", "width=600,height=700");
+
+    console.log("Initiating Instagram authentication...");
+  };
+
   const handleIntegration = (platform: string) => {
-    console.log(`Integrating with ${platform}...`);
-    // Here you would implement actual integration logic
+    if (platform === "Instagram") {
+      handleMetaAuthentication();
+    } else {
+      console.log(`Integrating with ${platform}...`);
+      // Implementation for other platforms
+    }
+  };
+
+  const handleEditIntegration = (integration: Integration) => {
+    console.log("Edit integration:", integration);
+    // TODO: Implement edit functionality
+    alert(`Edit functionality for ${integration.name} coming soon!`);
+  };
+
+  const handleDeleteIntegration = async (integration: Integration) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to disconnect ${integration.name.toLowerCase()}? This action cannot be undone.`
+    );
+
+    if (confirmed) {
+      console.log("Delete integration:", integration);
+      // TODO: Implement delete API call
+      try {
+        // For now, just remove from local state
+        setIntegrations((prev) =>
+          prev.filter((item) => item.id !== integration.id)
+        );
+
+        // Update connected platforms
+        const updatedPlatforms = { ...connectedPlatforms };
+        if (integration.name === "INSTAGRAM")
+          updatedPlatforms.Instagram = false;
+        if (integration.name === "WHATSAPP") updatedPlatforms.WhatsApp = false;
+        if (integration.name === "FACEBOOK") updatedPlatforms.Facebook = false;
+        setConnectedPlatforms(updatedPlatforms);
+
+        alert(`${integration.name.toLowerCase()} disconnected successfully!`);
+      } catch (error) {
+        console.error("Failed to delete integration:", error);
+        alert("Failed to disconnect integration. Please try again.");
+      }
+    }
   };
 
   return (
@@ -18,6 +226,146 @@ export default function IntegrationsPage() {
         <p className="text-gray-600 dark:text-gray-300">
           Connect your accounts to enhance your marketing capabilities.
         </p>
+        {/* Integrations List */}
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
+            Connected Integrations
+          </h3>
+          {isLoadingIntegrations ? (
+            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center">
+              <div className="text-gray-400 dark:text-gray-500 mb-2">
+                <div className="animate-spin h-8 w-8 mx-auto border-4 border-gray-300 border-t-blue-500 rounded-full"></div>
+              </div>
+              <p className="text-gray-600 dark:text-gray-400">
+                Loading integrations...
+              </p>
+            </div>
+          ) : integrations.length === 0 ? (
+            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center">
+              <div className="text-gray-400 dark:text-gray-500 mb-2">
+                <Share2 className="h-8 w-8 mx-auto" />
+              </div>
+              <p className="text-gray-600 dark:text-gray-400">
+                No integrations connected yet.
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                Connect your social media accounts to get started.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {integrations.map((integration: Integration) => (
+                <div
+                  key={
+                    integration.name +
+                    (integration.instagramId ||
+                      integration.instgramId ||
+                      integration.id)
+                  }
+                  className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
+                >
+                  {/* Platform Header */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center">
+                      {integration.name === "INSTAGRAM" && (
+                        <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-2 rounded-lg mr-3 shadow-sm">
+                          <Camera className="h-4 w-4 text-white" />
+                        </div>
+                      )}
+                      {integration.name === "WHATSAPP" && (
+                        <div className="bg-green-500 p-2 rounded-lg mr-3 shadow-sm">
+                          <MessageCircle className="h-4 w-4 text-white" />
+                        </div>
+                      )}
+                      {integration.name === "FACEBOOK" && (
+                        <div className="bg-blue-600 p-2 rounded-lg mr-3 shadow-sm">
+                          <Share2 className="h-4 w-4 text-white" />
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="font-semibold text-gray-800 dark:text-white capitalize">
+                          {integration.name.toLowerCase()}
+                        </h4>
+                        <div className="flex items-center text-xs text-green-600 dark:text-green-400">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Connected
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center space-x-1">
+                      <button
+                        onClick={() => handleEditIntegration(integration)}
+                        className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                        title="Edit integration"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteIntegration(integration)}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        title="Delete integration"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Integration Details */}
+                  <div className="space-y-2 text-sm">
+                    {(integration.instagramId || integration.instgramId) && (
+                      <div className="flex items-center text-gray-600 dark:text-gray-400">
+                        <span className="font-medium mr-2">ID:</span>
+                        <span className="font-mono text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                          {integration.instagramId || integration.instgramId}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center text-gray-600 dark:text-gray-400">
+                      <Calendar className="h-3 w-3 mr-2" />
+                      <span className="mr-2">Connected:</span>
+                      <span className="text-xs">
+                        {new Date(
+                          integration.createdAt || Date.now()
+                        ).toLocaleDateString()}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center text-gray-600 dark:text-gray-400">
+                      <Clock className="h-3 w-3 mr-2" />
+                      <span className="mr-2">Expires:</span>
+                      <span className="text-xs">
+                        {integration.expiresAt === "1970-01-01T00:00:00.000Z"
+                          ? "Never"
+                          : new Date(
+                              integration.expiresAt
+                            ).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Status Bar */}
+                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Last updated:{" "}
+                        {new Date(
+                          integration.updatedAt || Date.now()
+                        ).toLocaleDateString()}
+                      </span>
+                      <div className="flex items-center text-green-600 dark:text-green-400">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></div>
+                        Active
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -34,14 +382,37 @@ export default function IntegrationsPage() {
           </div>
           <div className="p-6">
             <p className="text-gray-600 dark:text-gray-300 text-sm mb-6">
-              Connect your Instagram account to schedule posts and view
-              analytics directly from your dashboard.
+              Connect your Instagram account through Meta to schedule posts,
+              manage DMs, and view analytics directly from your dashboard.
             </p>
             <button
               onClick={() => handleIntegration("Instagram")}
-              className="w-full py-2 px-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-md hover:from-purple-600 hover:to-pink-600 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
+              disabled={
+                connectedPlatforms.Instagram || isConnecting === "Instagram"
+              }
+              className={`w-full py-2 px-4 flex items-center justify-center rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 ${
+                connectedPlatforms.Instagram
+                  ? "bg-green-500 hover:bg-green-600 text-white"
+                  : "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+              } ${
+                isConnecting === "Instagram"
+                  ? "opacity-75 cursor-not-allowed"
+                  : ""
+              }`}
             >
-              Connect Instagram
+              {isConnecting === "Instagram" ? (
+                <>
+                  <span className="animate-spin mr-2">⟳</span>
+                  Connecting...
+                </>
+              ) : connectedPlatforms.Instagram ? (
+                <>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Connected to Meta
+                </>
+              ) : (
+                "Connect via Meta"
+              )}
             </button>
           </div>
         </div>

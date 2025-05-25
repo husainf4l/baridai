@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 
 type Props = {
   isSidebarOpen: boolean;
@@ -10,12 +10,9 @@ type Props = {
 };
 
 const SidebarToggle = ({ isSidebarOpen, toggleSidebar, className }: Props) => {
-  const [mounted, setMounted] = useState(false);
-  const [hovered, setHovered] = useState(false);
-
   // Only show animations after component has mounted to avoid hydration mismatch
   useEffect(() => {
-    setMounted(true);
+    // Component mounted
   }, []);
 
   // Handle keyboard shortcuts
@@ -38,8 +35,6 @@ const SidebarToggle = ({ isSidebarOpen, toggleSidebar, className }: Props) => {
   return (
     <button
       onClick={toggleSidebar}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();

@@ -93,7 +93,7 @@ export class AuthService {
         try {
           const errorData = await response.json();
           throw new Error(errorData.message || `Login failed with status: ${response.status}`);
-        } catch (jsonError) {
+        } catch {
           // If we can't parse JSON, use status text
           throw new Error(`Login failed: ${response.statusText || response.status}`);
         }
@@ -147,7 +147,7 @@ export class AuthService {
         try {
           const errorData = await response.json();
           throw new Error(errorData.message || `Registration failed with status: ${response.status}`);
-        } catch (jsonError) {
+        } catch {
           // If we can't parse JSON, use status text
           throw new Error(`Registration failed: ${response.statusText || response.status}`);
         }

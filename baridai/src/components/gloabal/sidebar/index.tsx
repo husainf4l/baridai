@@ -20,10 +20,9 @@ import { useSidebar } from "@/context/sidebar-context";
 
 type Props = {
   username: string;
-  slug: string;
 };
 
-const Sidebar = ({ username, slug }: Props) => {
+const Sidebar = ({ username }: Props) => {
   const { state, closeSidebar, toggleCollapse } = useSidebar();
   const { open, isMobile, collapsed } = state;
   const sidebarRef = useRef<HTMLDivElement>(null);

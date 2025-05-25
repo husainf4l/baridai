@@ -1,7 +1,7 @@
 "use client";
 import Sidebar from "@/components/gloabal/sidebar";
 import Navbar from "@/components/gloabal/navigation/navbar";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
@@ -15,7 +15,7 @@ function LayoutContent({
   children: React.ReactNode;
   username: string;
 }) {
-  const { state, toggleSidebar } = useSidebar();
+  const { toggleSidebar } = useSidebar();
   const pathname = usePathname();
 
   // Extract page title from pathname
@@ -33,7 +33,7 @@ function LayoutContent({
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-950">
       {/* Sidebar */}
-      <Sidebar username={username} slug={pathname} />
+      <Sidebar username={username} />
 
       {/* Main Content with Navbar */}
       <div className="flex-1 flex flex-col overflow-hidden">

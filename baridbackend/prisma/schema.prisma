@@ -16,7 +16,7 @@ model User {
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
   automations  Automation[]
-  integrations Integration?
+  integrations Integration[]
   Subscription Subscription?
 }
 
@@ -46,15 +46,17 @@ model Automation {
 }
 
 model Integration {
-  id         String       @id @default(uuid())
-  name       INTEGRATIONS @default(INSTAGRAM)
-  createdAt  DateTime     @default(now()) @map("created_at")
-  updatedAt  DateTime     @updatedAt @map("updated_at")
-  userId     String?      @unique
-  token      String       @unique
-  expiresAt  DateTime     @map("expires_at")
-  instgramId String?
-  User       User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String       @id @default(uuid())
+  name        INTEGRATIONS @default(INSTAGRAM)
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  userId      String?
+  token       String       @unique
+  expiresAt   DateTime     @map("expires_at")
+  instagramId String?      @map("instgramId") // Keep the database column name for compatibility
+  pageId      String?
+  pageName    String?
+  User        User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Dms {

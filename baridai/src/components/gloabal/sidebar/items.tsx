@@ -14,7 +14,6 @@ import {
 type Props = {
   username: string;
   page: string;
-  slug: string;
   collapsed?: boolean;
   showTooltip?: boolean;
 };
@@ -22,7 +21,6 @@ type Props = {
 const Items = ({
   username,
   page,
-  slug,
   collapsed = false,
   showTooltip = false,
 }: Props) => {

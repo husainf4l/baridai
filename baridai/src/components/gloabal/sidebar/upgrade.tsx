@@ -2,9 +2,7 @@ import React from "react";
 import PaymentButton from "../payment-button";
 import { SparklesIcon } from "@heroicons/react/24/solid";
 
-type Props = {};
-
-const UpgradeCard = (props: Props) => {
+const UpgradeCard = () => {
   return (
     <div className="p-4 bg-gradient-to-br from-[#1c1c1c] to-[#252525] rounded-2xl flex flex-col gap-y-3 shadow-inner border border-gray-800/50 my-2">
       <div className="flex items-center gap-2">

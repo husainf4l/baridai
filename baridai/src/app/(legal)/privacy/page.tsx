@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 
@@ -22,252 +21,156 @@ export default function PrivacyPolicy() {
           <div className="prose prose-lg dark:prose-invert max-w-none">
             <h2>Introduction</h2>
             <p>
-              Welcome to Barid AI. We respect your privacy and are committed to
-              protecting your personal data. This Privacy Policy explains how we
-              collect, use, disclose, and safeguard your information when you
-              use our service.
-            </p>
-            <p>
-              Barid AI is a product of ROXATE LTD (UK Registered Company No.
-              16232608). We provide AI-powered Instagram direct message
-              automation services. We comply with Meta Platform Terms and
-              Instagram Platform Terms and Policies for applications that access
-              Instagram data. This policy applies to information we collect
-              through our website and the Barid AI application.
+              This Privacy Policy describes how Barid AI (a product of ROXATE
+              LTD, UK Registered Company No. 16232608) collects, uses, shares,
+              and protects your information when you use our website, platform,
+              and services. We are committed to transparency and to safeguarding
+              your privacy in compliance with Meta Platform Terms and Instagram
+              Platform Policies.
             </p>
 
             <h2>Information We Collect</h2>
-
-            <h3>Personal Data</h3>
-            <p>We may collect the following types of personal data:</p>
             <ul>
               <li>
-                <strong>Account Information:</strong> When you register for an
-                account, we collect your name, email address, username, and
-                password.
+                <strong>Account Data:</strong> When you register, we collect
+                your name, email, username, and password.
               </li>
               <li>
-                <strong>Instagram Business Account Data:</strong> When you
-                connect your Instagram Business Account, we receive access to
-                specific data through Meta's APIs, including basic profile
-                information, content, and direct messages as permitted by Meta.
+                <strong>Instagram Data:</strong> If you connect your Instagram
+                Business Account, we access data via Meta’s APIs, such as
+                profile info, content, engagement metrics, and direct messages,
+                only as permitted and necessary for our features.
               </li>
               <li>
-                <strong>Payment Information:</strong> If you purchase a
-                subscription, we collect payment details, billing information,
-                and transaction history.
+                <strong>Usage Data:</strong> We collect information about your
+                interactions with Barid AI, including device info, IP address,
+                browser type, and usage logs.
               </li>
               <li>
-                <strong>Usage Data:</strong> We collect information about how
-                you interact with our service, including log data, device
-                information, IP address, browser type, and operating system.
+                <strong>Payment Data:</strong> If you purchase a subscription,
+                we process payment and billing information via secure
+                third-party providers.
               </li>
               <li>
-                <strong>User-Generated Content:</strong> Information you provide
-                when using our services, such as AI response configurations,
-                brand voice settings, and custom message templates.
+                <strong>Support and Communications:</strong> If you contact us,
+                we may keep records of your correspondence.
               </li>
             </ul>
-
-            <h3>Instagram Account and Content Data</h3>
-            <p>
-              When you connect your Instagram account to Barid AI, we request
-              permission to access certain data through Meta's APIs according to
-              the permissions you grant. This may include:
-            </p>
-            <ul>
-              <li>Profile data (username, business information)</li>
-              <li>Direct messages (content, sender information, timestamps)</li>
-              <li>
-                Engagement metrics related to your Instagram business account
-              </li>
-              <li>Content information necessary for AI response generation</li>
-            </ul>
-            <p>
-              We only request permissions that are necessary for providing our
-              core services. You can review and revoke these permissions at any
-              time through your Instagram account settings.
-            </p>
 
             <h2>How We Use Your Information</h2>
-            <p>We use the information we collect for the following purposes:</p>
             <ul>
               <li>
-                <strong>Providing and Maintaining the Service:</strong> To
-                deliver the functionality of Barid AI, including managing your
-                account, processing payments, and enabling AI responses to
-                Instagram direct messages.
+                To provide, maintain, and improve Barid AI’s services and
+                features.
               </li>
               <li>
-                <strong>Improving and Personalizing:</strong> To understand how
-                users interact with our service, improve features, and develop
-                new products.
+                To personalize your experience and deliver relevant content.
+              </li>
+              <li>To process payments and manage subscriptions.</li>
+              <li>
+                To communicate with you about updates, support, and marketing
+                (with your consent).
               </li>
               <li>
-                <strong>Communications:</strong> To respond to your requests,
-                provide customer support, send service updates, and marketing
-                communications (when permitted).
+                To comply with legal obligations and protect our rights and
+                users.
               </li>
               <li>
-                <strong>Security and Compliance:</strong> To detect and prevent
-                fraud, protect our systems, and comply with legal obligations.
-              </li>
-              <li>
-                <strong>AI Training:</strong> To train our AI systems to better
-                understand and respond to direct messages in your brand voice,
-                but only with your explicit consent.
+                To train and improve our AI models, only with your explicit
+                consent.
               </li>
             </ul>
 
-            <h2>Data Sharing and Disclosure</h2>
-            <p>We may share your information with:</p>
+            <h2>How We Share Information</h2>
             <ul>
               <li>
-                <strong>Service Providers:</strong> Third-party vendors who
-                perform services on our behalf, such as payment processing, data
-                analysis, and customer service.
+                <strong>Service Providers:</strong> We may share data with
+                trusted vendors who help us operate Barid AI (e.g., payment
+                processors, analytics, hosting).
               </li>
               <li>
-                <strong>Meta Companies:</strong> As required by Meta Platform
+                <strong>Meta/Instagram:</strong> As required by Meta Platform
                 Terms for applications that integrate with Instagram.
               </li>
               <li>
-                <strong>Legal Requirements:</strong> When required by law,
-                subpoena, or other legal processes.
+                <strong>Legal Compliance:</strong> We may disclose information
+                if required by law or to protect our rights and users.
               </li>
               <li>
-                <strong>Business Transfers:</strong> In connection with a
-                merger, acquisition, or sale of assets.
+                <strong>Business Transfers:</strong> If Barid AI is acquired or
+                merged, your data may be transferred as part of that
+                transaction.
               </li>
               <li>
-                <strong>With Your Consent:</strong> In other cases with your
-                explicit consent.
+                <strong>With Your Consent:</strong> We may share information for
+                other purposes with your explicit consent.
               </li>
             </ul>
-            <p>
-              We do not sell your personal information or Instagram data to
-              third parties.
-            </p>
 
             <h2>Data Security</h2>
             <p>
-              We implement appropriate technical and organizational measures to
-              protect your personal data against unauthorized or unlawful
-              processing, accidental loss, destruction, or damage. These
-              measures include encryption, access controls, regular security
-              assessments, and staff training.
-            </p>
-            <p>
-              However, no method of transmission over the Internet or electronic
-              storage is 100% secure. While we strive to use commercially
-              acceptable means to protect your personal information, we cannot
-              guarantee its absolute security.
+              We use industry-standard security measures to protect your data,
+              including encryption, access controls, and regular security
+              assessments. However, no system is 100% secure. We encourage you
+              to use strong passwords and protect your account.
             </p>
 
-            <h2>Data Retention</h2>
-            <p>
-              We retain your personal data only for as long as necessary to
-              fulfill the purposes for which we collected it, including for the
-              purposes of satisfying any legal, regulatory, tax, accounting, or
-              reporting requirements.
-            </p>
-            <p>
-              If you delete your account, we will delete or anonymize your
-              personal data within 30 days, except where we need to retain
-              certain information for legitimate business or legal purposes.
-            </p>
-
-            <h2>Your Rights and Choices</h2>
-            <p>
-              Depending on your location, you may have rights regarding your
-              personal data, including:
-            </p>
+            <h2>Your Rights</h2>
             <ul>
-              <li>Access your personal data</li>
-              <li>Correct inaccurate data</li>
-              <li>Delete your data</li>
-              <li>Object to or restrict processing</li>
-              <li>Data portability</li>
-              <li>Withdraw consent</li>
-            </ul>
-            <p>
-              You can exercise these rights by contacting us at
-              privacy@roxate.com. We will respond to all legitimate requests
-              within the timeframe required by applicable laws.
-            </p>
-
-            <h2>Instagram Platform Compliance</h2>
-            <p>
-              Barid AI complies with Meta Platform Terms and Instagram Platform
-              Policies. We:
-            </p>
-            <ul>
+              <li>Access, update, or delete your personal data.</li>
+              <li>Withdraw consent or object to certain processing.</li>
               <li>
-                Only request permissions that are necessary for our service
-              </li>
-              <li>Do not store Instagram user passwords</li>
-              <li>Do not transfer Instagram data to data brokers</li>
-              <li>
-                Provide a clear method for users to disconnect their Instagram
-                account from Barid AI
-              </li>
-              <li>
-                Delete Instagram data upon request or when no longer needed
-              </li>
-              <li>
-                Maintain appropriate security measures to protect Instagram data
+                Contact us at privacy@roxate.com for any privacy-related
+                requests.
               </li>
             </ul>
 
-            <h2>Children's Privacy</h2>
+            <h2>International Transfers</h2>
             <p>
-              Our services are not intended for individuals under the age of 18,
-              and we do not knowingly collect personal data from children. If
-              you believe we have collected personal data from anyone under 18,
-              please contact us immediately.
+              Your data may be processed outside your country. We use safeguards
+              such as Standard Contractual Clauses to ensure your data is
+              protected according to applicable law.
             </p>
 
-            <h2>International Data Transfers</h2>
+            <h2>Children’s Privacy</h2>
             <p>
-              Your information may be transferred to and processed in countries
-              other than your country of residence. These countries may have
-              data protection laws that differ from your country's laws.
-            </p>
-            <p>
-              When we transfer data internationally, we use appropriate
-              safeguards such as Standard Contractual Clauses to ensure your
-              data is protected.
+              Barid AI is not intended for children under 18. We do not
+              knowingly collect data from minors. If you believe we have
+              collected data from a child, please contact us immediately.
             </p>
 
-            <h2>Changes to This Privacy Policy</h2>
+            <h2>Meta/Instagram Platform Compliance</h2>
+            <ul>
+              <li>We only request permissions necessary for our service.</li>
+              <li>We do not store Instagram user passwords.</li>
+              <li>We do not transfer Instagram data to data brokers.</li>
+              <li>
+                We provide a clear method for users to disconnect their
+                Instagram account from Barid AI.
+              </li>
+              <li>
+                We delete Instagram data upon request or when no longer needed.
+              </li>
+              <li>
+                We maintain appropriate security measures to protect Instagram
+                data.
+              </li>
+            </ul>
+
+            <h2>Changes to This Policy</h2>
             <p>
-              We may update this Privacy Policy from time to time to reflect
-              changes in our practices or for other operational, legal, or
-              regulatory reasons. The updated version will be effective as of
-              the date stated at the top of this Privacy Policy.
-            </p>
-            <p>
-              We will notify you of any material changes by posting the new
-              Privacy Policy on this page and, where appropriate, sending you a
-              notification or obtaining consent as required by applicable laws.
+              We may update this policy. We will notify you of significant
+              changes and post the new policy on our website. The updated
+              version will be effective as of the date stated at the top of this
+              Privacy Policy.
             </p>
 
-            <h2>Contact Us</h2>
+            <h2>Contact</h2>
             <p>
-              If you have any questions about this Privacy Policy or our data
-              practices, please contact us at:
-            </p>
-            <p>
-              Email: privacy@roxate.com
-              <br />
-              Phone: +447822015226
+              For questions or concerns, contact us at privacy@roxate.com.
               <br />
               Address: ROXATE LTD, 71-75 Shelton Street, Covent Garden, London,
               United Kingdom, WC2H 9JQ
-            </p>
-            <p>
-              For inquiries related to data protection, you can contact our Data
-              Protection Officer at privacy@roxate.com.
             </p>
           </div>
 

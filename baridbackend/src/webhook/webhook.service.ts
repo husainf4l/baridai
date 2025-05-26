@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateListenerDto } from './dto/create-listener.dto';
+import axios from 'axios';
 
 @Injectable()
 export class WebhookService {
@@ -205,6 +206,29 @@ export class WebhookService {
               });
               
               console.log(`✅ Successfully created DM record: ${createdDm.id}`);
+              
+              // Automatically respond with "received" message
+              try {
+                console.log(`🔄 Sending automatic "received" response to sender ${senderId}`);
+                
+                // Send response using the Instagram Graph API
+                const response = await this.sendInstagramMessage(
+                  integration.userId,
+                  {
+                    pageId: integration.pageId,
+                    recipientId: senderId,
+                    message: "received"
+                  }
+                );
+                
+                if (response.success) {
+                  console.log(`✅ Automatic response sent successfully`);
+                } else {
+                  console.error(`❌ Failed to send automatic response: ${response.error}`);
+                }
+              } catch (responseError) {
+                console.error(`❌ Failed to send automatic response:`, responseError);
+              }
             } catch (error) {
               console.error('❌ Failed to create DM record:', error);
             }
@@ -545,7 +569,7 @@ export class WebhookService {
     }
   }
 
-  // New method to send a response to an Instagram DM
+  // Method to send a response to an Instagram DM
   async sendInstagramMessage(
     userId: string,
     data: {
@@ -570,9 +594,18 @@ export class WebhookService {
           error: 'No valid Instagram integration found with access token',
         };
       }
+      
+      // Make sure we have an Instagram ID to send from
+      if (!integration.instagramId) {
+        return {
+          success: false,
+          error: 'Instagram Business Account ID not found in the integration',
+        };
+      }
 
-      // Send message using the Graph API
-      const url = `https://graph.facebook.com/v17.0/${data.pageId}/messages`;
+      // Send message using the Graph API - Using instagramId instead of pageId for the URL
+      // Instagram requires using graph.instagram.com domain for Instagram API requests
+      const url = `https://graph.instagram.com/v22.0/${integration.instagramId}/messages`;
 
       const requestBody = {
         recipient: { id: data.recipientId },
@@ -585,28 +618,81 @@ export class WebhookService {
       console.log(`Body: ${JSON.stringify(requestBody)}`);
       console.log(`Using token: ${integration.token.substring(0, 10)}...`);
 
-      // TODO: Use your HTTP client (axios, fetch, etc.) to make the API call
-      // const response = await axios.post(url, requestBody, {
-      //   headers: {
-      //     'Authorization': `Bearer ${integration.token}`,
-      //     'Content-Type': 'application/json',
-      //   },
-      // });
-
-      // For now, we'll just return a mock success response
-      return {
-        success: true,
-        data: {
-          message: 'Message sent successfully',
-          recipientId: data.recipientId,
-          pageId: data.pageId,
-        },
-      };
+      try {
+        // Make the actual API call to Instagram
+        // Clean the token to remove any whitespace, newline characters, or other problematic chars
+        let cleanToken = integration.token;
+        
+        // Handle null or undefined token
+        if (!cleanToken) {
+          console.error('Token is null or undefined');
+          return {
+            success: false,
+            error: 'Token is missing in the integration',
+          };
+        }
+        
+        // Convert to string if not already and perform thorough cleaning
+        cleanToken = String(cleanToken)
+          .trim()
+          .replace(/[\r\n\t\f\v ]/g, ''); // Remove all whitespace characters
+        
+        // Log token diagnostics for debugging
+        console.log('Raw token length:', integration.token.length);
+        console.log('Clean token length:', cleanToken.length);
+        console.log('Token first 10 chars:', cleanToken.substring(0, 10));
+        console.log('Token last 10 chars:', cleanToken.substring(cleanToken.length - 10));
+        
+        // Check for extremely short or malformed tokens
+        if (cleanToken.length < 20) {
+          console.error('Token appears too short to be valid');
+          return {
+            success: false,
+            error: 'Token appears to be invalid (too short)',
+          };
+        }
+        
+        const response = await axios.post(url, requestBody, {
+          headers: {
+            'Authorization': `Bearer ${cleanToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        console.log(`Instagram API response: ${response.status} ${response.statusText}`);
+        console.log(`Response data:`, JSON.stringify(response.data, null, 2));
+        
+        return {
+          success: true,
+          data: {
+            message: 'Message sent successfully',
+            recipientId: data.recipientId,
+            pageId: data.pageId,
+            apiResponse: response.data
+          },
+        };
+      } catch (apiError) {
+        console.error('Instagram API error:', apiError.response?.data || apiError.message);
+        if (apiError.response?.status === 401) {
+          console.error('Authentication failed - invalid token or permissions');
+          return {
+            success: false,
+            error: 'Authentication failed with Instagram API - invalid token',
+            details: apiError.response?.data?.error || apiError.message
+          };
+        }
+        return {
+          success: false,
+          error: 'Instagram API error',
+          details: apiError.response?.data || apiError.message
+        };
+      }
     } catch (error) {
       console.error('Error sending Instagram message:', error);
       return {
         success: false,
         error: 'Failed to send Instagram message',
+        details: error.message
       };
     }
   }

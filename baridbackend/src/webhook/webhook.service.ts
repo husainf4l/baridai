@@ -207,9 +207,54 @@ export class WebhookService {
               
               console.log(`✅ Successfully created DM record: ${createdDm.id}`);
               
-              // Automatically respond with "received" message
+              // Send message info to external webhook before responding
+              let webhookResponse = null;
+              let responseMessage = "received";
+              
               try {
-                console.log(`🔄 Sending automatic "received" response to sender ${senderId}`);
+                console.log(`📤 Sending message info to widd.ai webhook`);
+                const webhookResult = await axios.post('https://widd.ai/webhook/baridai', {
+                  automationId: automation.id,
+                  automationName: automation.name,
+                  senderId,
+                  recipientId,
+                  messageText,
+                  createdDm,
+                  integration: {
+                    userId: integration.userId,
+                    pageId: integration.pageId,
+                    instagramId: integration.instagramId,
+                    pageName: integration.pageName,
+                  },
+                  timestamp: new Date().toISOString(),
+                }, {
+                  timeout: 10000, // 10 second timeout
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'BaridAI-Webhook/1.0'
+                  }
+                });
+                
+                console.log('✅ Sent message info to widd.ai webhook');
+                console.log('📊 Webhook response:', JSON.stringify(webhookResult.data, null, 2));
+                
+                // If the webhook returns a response message, use it
+                if (webhookResult.data && webhookResult.data.message) {
+                  responseMessage = webhookResult.data.message;
+                  console.log(`Using webhook response message: "${responseMessage}"`);
+                }
+              } catch (webhookError) {
+                console.error('❌ Failed to send info to widd.ai webhook:', webhookError?.response?.data || webhookError.message);
+                console.error('🔍 Webhook error details:', JSON.stringify({
+                  status: webhookError?.response?.status,
+                  statusText: webhookError?.response?.statusText,
+                  data: webhookError?.response?.data
+                }, null, 2));
+              }
+              
+              // Automatically respond with the message
+              try {
+                console.log(`🔄 Sending automatic response to sender ${senderId}: "${responseMessage}"`);
                 
                 // Send response using the Instagram Graph API
                 const response = await this.sendInstagramMessage(
@@ -217,7 +262,7 @@ export class WebhookService {
                   {
                     pageId: integration.pageId,
                     recipientId: senderId,
-                    message: "received"
+                    message: responseMessage
                   }
                 );
                 

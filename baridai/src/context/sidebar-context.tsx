@@ -6,6 +6,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useRef,
 } from "react";
 import { usePathname } from "next/navigation";
 
@@ -15,6 +16,7 @@ type SidebarState = {
   isMobile: boolean;
   activeItem: string | null;
   lastFocused: string | null;
+  isInitialized: boolean;
 };
 
 type SidebarContextType = {
@@ -36,6 +38,7 @@ const defaultState: SidebarState = {
   isMobile: false,
   activeItem: null,
   lastFocused: null,
+  isInitialized: false,
 };
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
@@ -47,33 +50,50 @@ export function SidebarProvider({
   children: React.ReactNode;
   defaultCollapsed?: boolean;
 }) {
+  const hasMounted = useRef(false);
+
   // Initialize with defaults but allow override for collapsed state
-  const [state, setState] = useState<SidebarState>(() => {
-    // Try to load saved preferences from localStorage
+  const [state, setState] = useState<SidebarState>({
+    ...defaultState,
+    collapsed: defaultCollapsed,
+  });
+
+  // Only attempt to access localStorage after component has mounted
+  useEffect(() => {
     if (typeof window !== "undefined") {
       try {
         const savedPrefs = localStorage.getItem(SIDEBAR_STORAGE_KEY);
         if (savedPrefs) {
           const parsedPrefs = JSON.parse(savedPrefs);
-          return {
-            ...defaultState,
+          setState((prev) => ({
+            ...prev,
             collapsed: parsedPrefs.collapsed ?? defaultCollapsed,
-          };
+            isInitialized: true,
+          }));
+        } else {
+          setState((prev) => ({
+            ...prev,
+            isInitialized: true,
+          }));
         }
       } catch (error) {
         console.error("Error loading sidebar preferences:", error);
+        setState((prev) => ({
+          ...prev,
+          isInitialized: true,
+        }));
       }
+
+      hasMounted.current = true;
     }
-    return {
-      ...defaultState,
-      collapsed: defaultCollapsed,
-    };
-  });
+  }, [defaultCollapsed]);
 
   const pathname = usePathname();
 
-  // Effect for mobile detection
+  // Effect for mobile detection - only run after initialization
   useEffect(() => {
+    if (!state.isInitialized) return;
+
     const checkIfMobile = () => {
       const isMobile = window.innerWidth < 1024;
       setState((prev) => ({
@@ -90,10 +110,12 @@ export function SidebarProvider({
     // Listen for resize events
     window.addEventListener("resize", checkIfMobile);
     return () => window.removeEventListener("resize", checkIfMobile);
-  }, []);
+  }, [state.isInitialized]);
 
   // Effect for route changes
   useEffect(() => {
+    if (!state.isInitialized) return;
+
     // Close sidebar on mobile when route changes
     if (state.isMobile) {
       setState((prev) => ({ ...prev, open: false }));
@@ -101,10 +123,12 @@ export function SidebarProvider({
 
     // Update active item based on pathname
     setState((prev) => ({ ...prev, activeItem: pathname }));
-  }, [pathname, state.isMobile]);
+  }, [pathname, state.isMobile, state.isInitialized]);
 
   // Effect for escape key
   useEffect(() => {
+    if (!state.isInitialized) return;
+
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && state.isMobile && state.open) {
         setState((prev) => ({ ...prev, open: false }));
@@ -113,7 +137,21 @@ export function SidebarProvider({
 
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [state.isMobile, state.open]);
+  }, [state.isMobile, state.open, state.isInitialized]);
+
+  // Save preferences to localStorage whenever they change
+  useEffect(() => {
+    if (!state.isInitialized || typeof window === "undefined") return;
+
+    try {
+      localStorage.setItem(
+        SIDEBAR_STORAGE_KEY,
+        JSON.stringify({ collapsed: state.collapsed })
+      );
+    } catch (err) {
+      console.error("Failed to save sidebar preferences:", err);
+    }
+  }, [state.collapsed, state.isInitialized]);
 
   const toggleSidebar = useCallback(() => {
     setState((prev) => ({ ...prev, open: !prev.open }));
@@ -137,53 +175,46 @@ export function SidebarProvider({
 
   // Effect for global keyboard shortcut (Ctrl+B toggle)
   useEffect(() => {
+    if (!state.isInitialized) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === SIDEBAR_KEYBOARD_SHORTCUT && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        toggleSidebar();
+        if (state.isMobile) {
+          toggleSidebar();
+        } else {
+          toggleCollapse();
+        }
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [toggleSidebar]);
+  }, [state.isMobile, toggleSidebar, toggleCollapse, state.isInitialized]);
 
-  // Effect to save preferences when they change
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem(
-          SIDEBAR_STORAGE_KEY,
-          JSON.stringify({
-            collapsed: state.collapsed,
-          })
-        );
-      } catch (error) {
-        console.error("Error saving sidebar preferences:", error);
-      }
-    }
-  }, [state.collapsed]);
+  const value = {
+    state,
+    toggleSidebar,
+    closeSidebar,
+    toggleCollapse,
+    setActiveItem,
+    setLastFocused,
+  };
 
   return (
-    <SidebarContext.Provider
-      value={{
-        state,
-        toggleSidebar,
-        closeSidebar,
-        toggleCollapse,
-        setActiveItem,
-        setLastFocused,
-      }}
-    >
+    <SidebarContext.Provider value={value}>
       {children}
     </SidebarContext.Provider>
   );
 }
 
-export function useSidebar() {
+// Function to safely use the sidebar context
+export const useSidebar = () => {
   const context = useContext(SidebarContext);
+
   if (context === undefined) {
     throw new Error("useSidebar must be used within a SidebarProvider");
   }
+
   return context;
-}
+};

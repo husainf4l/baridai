@@ -70,7 +70,7 @@ export async function getMediaInsights(
 ): Promise<InsightsResponse> {
   try {
     // The Instagram Graph API endpoint for media insights
-    const endpoint = `https://graph.instagram.com/v18.0/${mediaId}/insights`;
+    const endpoint = `https://graph.instagram.com/v22.0/${mediaId}/insights`;
     
     // Convert metrics array to comma-separated string
     const metricsParam = metrics.join(',');
@@ -108,7 +108,7 @@ export async function getUserMedia(
 ): Promise<MediaResponse> {
   try {
     // The Instagram Graph API endpoint for user media
-    const endpoint = `https://graph.instagram.com/v18.0/${userId}/media`;
+    const endpoint = `https://graph.instagram.com/v22.0/${userId}/media`;
     
     // Build the URL with parameters
     const url = `${endpoint}?fields=id,caption,media_type,media_url,permalink,thumbnail_url,timestamp,username&limit=${limit}&access_token=${accessToken}`;

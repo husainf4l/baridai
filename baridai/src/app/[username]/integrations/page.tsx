@@ -16,6 +16,7 @@ import {
   Integration,
   addIntegration,
 } from "@/services/integrations-service";
+import { getInstagramAuthUrl } from "@/services/instagram-oauth-config";
 
 export default function IntegrationsPage() {
   const [connectedPlatforms, setConnectedPlatforms] = useState<
@@ -138,38 +139,23 @@ export default function IntegrationsPage() {
   const handleMetaAuthentication = () => {
     setIsConnecting("Instagram");
 
-    // Instagram authentication flow using the Instagram app ID from env variables
-    const instagramAppId = process.env.NEXT_PUBLIC_INSTAGRAM_APP_ID;
-    const ngrokUrl = process.env.NEXT_PUBLIC_NGROK_URL;
+    try {
+      // Get Instagram authentication URL from our configuration service
+      const authUrl = getInstagramAuthUrl();
 
-    if (!instagramAppId) {
-      console.error("Instagram App ID not found in environment variables");
+      console.log("Instagram OAuth URL:", authUrl);
+
+      // Open Instagram OAuth dialog in a popup window
+      window.open(authUrl, "instagram_login", "width=600,height=700");
+
+      console.log("Initiating Instagram authentication...");
+    } catch (error) {
+      console.error("Failed to initiate Instagram authentication:", error);
+      alert(
+        "Could not connect to Instagram. Please check your environment configuration."
+      );
       setIsConnecting(null);
-      return;
     }
-
-    if (!ngrokUrl) {
-      console.error("Ngrok URL not found in environment variables");
-      setIsConnecting(null);
-      return;
-    }
-
-    // Use ngrok URL for redirect since Instagram needs HTTPS
-    const redirectUri = encodeURIComponent(`${ngrokUrl}/auth/callback`);
-
-    // Instagram Basic Display API scopes
-    const scope = encodeURIComponent("user_profile,user_media");
-
-    // Instagram Basic Display OAuth URL
-    const authUrl = `https://api.instagram.com/oauth/authorize?client_id=${instagramAppId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
-
-    console.log("Instagram OAuth URL:", authUrl);
-    console.log("Redirect URI:", `${ngrokUrl}/auth/callback`);
-
-    // Open Instagram OAuth dialog in a popup window
-    window.open(authUrl, "instagram_login", "width=600,height=700");
-
-    console.log("Initiating Instagram authentication...");
   };
 
   const handleIntegration = (platform: string) => {
@@ -402,16 +388,16 @@ export default function IntegrationsPage() {
             >
               {isConnecting === "Instagram" ? (
                 <>
-                  <span className="animate-spin mr-2">⟳</span>
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
                   Connecting...
                 </>
               ) : connectedPlatforms.Instagram ? (
                 <>
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  Connected to Meta
+                  Connected to Instagram
                 </>
               ) : (
-                "Connect via Meta"
+                "Connect Instagram"
               )}
             </button>
           </div>

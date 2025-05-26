@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
@@ -28,12 +28,20 @@ const Sidebar = ({ username }: Props) => {
   const sidebarRef = useRef<HTMLDivElement>(null);
   const firstFocusableRef = useRef<HTMLButtonElement>(null);
   const lastFocusableRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Set mounted state after component mounts to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Always expanded on mobile when open
   const isCollapsed = isMobile ? false : collapsed;
 
   // Handle focus trap for accessibility
   useEffect(() => {
+    if (!mounted) return;
+
     const handleFocusTrap = (e: KeyboardEvent) => {
       if (!isMobile || !open) return;
 
@@ -64,7 +72,24 @@ const Sidebar = ({ username }: Props) => {
 
     document.addEventListener("keydown", handleFocusTrap);
     return () => document.removeEventListener("keydown", handleFocusTrap);
-  }, [isMobile, open]);
+  }, [isMobile, open, mounted]);
+
+  // Only render the correct sidebar UI after client-side hydration is complete
+  if (!mounted) {
+    // Return a minimal sidebar structure for SSR that won't cause hydration mismatches
+    return (
+      <div
+        className="flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 h-screen w-[240px]"
+        role="navigation"
+        aria-label="Main navigation"
+      >
+        <div className="flex items-center border-b border-gray-200 dark:border-gray-800 gap-4 p-4">
+          <LogoSmall variant="default" size="md" />
+        </div>
+        <div className="flex-1 overflow-y-auto py-2 px-3 min-w-0 w-full"></div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -78,7 +103,7 @@ const Sidebar = ({ username }: Props) => {
       )}
 
       {/* Mobile overlay backdrop */}
-      {isMobile && open && (
+      {mounted && isMobile && open && (
         <div
           className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden"
           aria-hidden="true"
@@ -86,7 +111,7 @@ const Sidebar = ({ username }: Props) => {
         />
       )}
 
-      {(open || !isMobile) && (
+      {(!isMobile || open) && (
         <div
           ref={sidebarRef}
           className={cn(
@@ -102,7 +127,7 @@ const Sidebar = ({ username }: Props) => {
           aria-label="Main navigation"
         >
           {/* Mobile close button */}
-          {isMobile && (
+          {mounted && isMobile && (
             <button
               ref={firstFocusableRef}
               className="absolute top-4 right-4 z-50 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
@@ -144,7 +169,7 @@ const Sidebar = ({ username }: Props) => {
             )}
           >
             {/* Only show menu icon on mobile, with modern spacing */}
-            {isMobile && (
+            {mounted && isMobile && (
               <SidebarToggle
                 isSidebarOpen={open}
                 toggleSidebar={closeSidebar}
@@ -153,7 +178,7 @@ const Sidebar = ({ username }: Props) => {
             )}
 
             {/* Logo/Home */}
-            {isCollapsed ? (
+            {isCollapsed && mounted ? (
               <div className="relative flex items-center justify-center p-1">
                 <span className="relative flex w-7 h-7">
                   <span className="animate-ping-slow absolute inline-flex h-full w-full rounded-full bg-blue-500 dark:bg-blue-400 opacity-20"></span>
@@ -163,6 +188,21 @@ const Sidebar = ({ username }: Props) => {
               </div>
             ) : (
               <LogoSmall variant="default" size="md" />
+            )}
+
+            {/* Collapse toggle button (desktop only) */}
+            {mounted && !isMobile && (
+              <button
+                onClick={toggleCollapse}
+                className="ml-auto p-1 rounded-md text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              >
+                {isCollapsed ? (
+                  <ChevronRightIcon className="h-4 w-4" />
+                ) : (
+                  <ChevronLeftIcon className="h-4 w-4" />
+                )}
+              </button>
             )}
           </div>
 

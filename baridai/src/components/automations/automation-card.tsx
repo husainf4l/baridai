@@ -1,21 +1,26 @@
-import { Play, Pause, Edit2, Settings, Trash2 } from "lucide-react";
+import { Play, Pause, Settings, Trash2, Eye } from "lucide-react";
 import { Automation } from "./types";
 import {
   getIntegrationIcon,
   getIntegrationColor,
   getStatusIcon,
+  getAutomationTypeIcon,
+  formatDate,
+  formatTimeAgo
 } from "./utils";
 
 interface AutomationCardProps {
   automation: Automation;
   onToggleStatus: (id: string) => void;
   onDelete: (id: string) => void;
+  onViewDetails: (id: string) => void;
 }
 
 export const AutomationCard = ({
   automation,
   onToggleStatus,
   onDelete,
+  onViewDetails,
 }: AutomationCardProps) => {
   return (
     <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 hover:shadow-lg transition-all duration-200">
@@ -48,53 +53,66 @@ export const AutomationCard = ({
               >
                 {automation.status}
               </span>
-              <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-xs font-medium">
-                {automation.type}
+              <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-xs font-medium flex items-center gap-1">
+                {getAutomationTypeIcon(automation.type)}
+                <span>{automation.type}</span>
               </span>
             </div>
-            <p className="text-gray-600 dark:text-gray-400 mb-3">
-              {automation.description}
+
+            <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+              {automation.description || "No description available."}
             </p>
 
-            {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+            {/* Statistics */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Stats about runs */}
               <div>
-                <span className="text-gray-500 dark:text-gray-400">
-                  Total Runs:{" "}
-                </span>
-                <span className="font-medium text-gray-900 dark:text-white">
-                  {automation.stats.totalRuns}
-                </span>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  Total Runs
+                </div>
+                <div className="font-medium text-gray-900 dark:text-white">
+                  {automation.stats.totalRuns.toLocaleString()}
+                </div>
               </div>
+
+              {/* Stats about success rate */}
               <div>
-                <span className="text-gray-500 dark:text-gray-400">
-                  Success Rate:{" "}
-                </span>
-                <span className="font-medium text-gray-900 dark:text-white">
+                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  Success Rate
+                </div>
+                <div className="font-medium text-gray-900 dark:text-white">
                   {automation.stats.successRate}%
-                </span>
+                </div>
               </div>
+
+              {/* Stats about last run */}
               <div>
-                <span className="text-gray-500 dark:text-gray-400">
-                  {automation.nextRun ? "Next Run: " : "Last Run: "}
-                </span>
-                <span className="font-medium text-gray-900 dark:text-white">
-                  {automation.nextRun
-                    ? new Date(automation.nextRun).toLocaleDateString()
-                    : automation.lastRun
-                    ? new Date(automation.lastRun).toLocaleDateString()
-                    : "Never"}
-                </span>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  Last Activity
+                </div>
+                <div className="font-medium text-gray-900 dark:text-white">
+                  {automation.lastRun ? formatTimeAgo(automation.lastRun) : "Never"}
+                </div>
+              </div>
+
+              {/* Stats about creation date */}
+              <div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  Created
+                </div>
+                <div className="font-medium text-gray-900 dark:text-white">
+                  {formatDate(automation.createdAt)}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center space-x-2 ml-4">
+        <div className="flex flex-col space-y-3">
           <button
             onClick={() => onToggleStatus(automation.id)}
-            className={`p-2 rounded-lg transition-colors ${
+            className={`p-2 rounded-lg ${
               automation.status === "active"
                 ? "text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
                 : "text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
@@ -112,10 +130,11 @@ export const AutomationCard = ({
             )}
           </button>
           <button
+            onClick={() => onViewDetails(automation.id)}
             className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-            title="Edit automation"
+            title="View details"
           >
-            <Edit2 className="h-4 w-4" />
+            <Eye className="h-4 w-4" />
           </button>
           <button
             className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"

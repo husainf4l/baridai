@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useRef, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { SIDEBAR_MENU } from "@/constants/menu";
 import { usePathname } from "next/navigation";
@@ -15,14 +15,20 @@ type NavigationProps = {
 };
 
 // Memoized Navigation component to prevent re-renders
-export const Navigation = React.memo(function NavigationComponent({ 
-  username, 
-  collapsed, 
+export const Navigation = React.memo(function NavigationComponent({
+  username,
+  collapsed,
   showTooltip = false,
-  onItemSelect
+  onItemSelect,
 }: NavigationProps) {
   const pathname = usePathname();
   const navListRef = useRef<HTMLUListElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Set mounted state after initial render to prevent hydration mismatches
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Normalize the current path for sidebar highlighting
   const normalizePath = (path: string) => {
@@ -33,6 +39,8 @@ export const Navigation = React.memo(function NavigationComponent({
 
   // Check if an item is active based on the current path
   const isActive = (path: string) => {
+    if (!mounted) return false; // During SSR, don't calculate active state
+
     const pathLower = normalizePath(path.toLowerCase());
     const currentPathLower = normalizePath(pathname.toLowerCase());
 
@@ -43,43 +51,56 @@ export const Navigation = React.memo(function NavigationComponent({
     ) {
       return true;
     }
-    
+
     // For other paths, check if the current path starts with the item's path
     if (pathLower !== "/" && currentPathLower.startsWith(pathLower)) {
       return true;
     }
-    
+
     return false;
   };
 
-  // Function to generate path from label
-  const getPathFromLabel = (label: string): string => {
-    if (!username) return "#";
-    if (label.toLowerCase() === "home") return `/${username}/home`;
-    return `/${username}/${label.toLowerCase()}`;
+  // Get the URL path from a navigation label
+  const getPathFromLabel = (label: string) => {
+    if (label === "Dashboard" || label === "Home") return `/${username}/`;
+    return `/${username}/${label.toLowerCase().replace(/\s+/g, "-")}`;
   };
 
-  // Handle keyboard navigation between menu items
+  // Custom key navigation for improved accessibility
   const handleNavKeyDown = useCallback((e: KeyboardEvent) => {
     if (!navListRef.current) return;
-    
-    const menuItems = Array.from(navListRef.current.querySelectorAll('[role="menuitem"]'));
-    if (!menuItems.length) return;
-    
-    const activeIdx = menuItems.findIndex(item => item === document.activeElement);
-    
-    if (e.key === 'ArrowDown') {
+
+    const menuItems = Array.from(
+      navListRef.current.querySelectorAll('[role="menuitem"]')
+    );
+
+    if (menuItems.length === 0) return;
+
+    // Get the index of the current focused menu item
+    const currentIndex = menuItems.indexOf(
+      document.activeElement as HTMLElement
+    );
+
+    // Handle arrow key navigation
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
-      const nextIdx = activeIdx < menuItems.length - 1 ? activeIdx + 1 : 0;
-      (menuItems[nextIdx] as HTMLElement).focus();
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      const prevIdx = activeIdx > 0 ? activeIdx - 1 : menuItems.length - 1;
-      (menuItems[prevIdx] as HTMLElement).focus();
-    } else if (e.key === 'Home') {
+
+      let nextIndex;
+      if (e.key === "ArrowDown") {
+        nextIndex = currentIndex < menuItems.length - 1 ? currentIndex + 1 : 0;
+      } else {
+        nextIndex = currentIndex > 0 ? currentIndex - 1 : menuItems.length - 1;
+      }
+
+      (menuItems[nextIndex] as HTMLElement).focus();
+    }
+
+    // Handle Home/End keys
+    if (e.key === "Home") {
       e.preventDefault();
       (menuItems[0] as HTMLElement).focus();
-    } else if (e.key === 'End') {
+    }
+    if (e.key === "End") {
       e.preventDefault();
       (menuItems[menuItems.length - 1] as HTMLElement).focus();
     }
@@ -87,12 +108,35 @@ export const Navigation = React.memo(function NavigationComponent({
 
   // Add keyboard event listener to navigation list
   React.useEffect(() => {
+    if (!mounted) return;
+
     const navListEl = navListRef.current;
     if (navListEl) {
-      navListEl.addEventListener('keydown', handleNavKeyDown);
-      return () => navListEl.removeEventListener('keydown', handleNavKeyDown);
+      navListEl.addEventListener("keydown", handleNavKeyDown);
+      return () => navListEl.removeEventListener("keydown", handleNavKeyDown);
     }
-  }, [handleNavKeyDown]);
+  }, [handleNavKeyDown, mounted]);
+
+  // During SSR, return a simpler version to prevent hydration issues
+  if (!mounted) {
+    return (
+      <div className="px-3 pb-2">
+        <h2 className="text-xs uppercase font-semibold text-gray-500 dark:text-gray-400 px-2">
+          Navigation
+        </h2>
+        <ul className="space-y-1">
+          {SIDEBAR_MENU.map((item) => (
+            <li
+              key={item.id}
+              className="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300"
+            >
+              {item.label}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -108,9 +152,9 @@ export const Navigation = React.memo(function NavigationComponent({
         </h2>
       </div>
 
-      <ul 
-        className="space-y-1" 
-        role="menu" 
+      <ul
+        className="space-y-1"
+        role="menu"
         ref={navListRef}
         aria-labelledby="nav-heading"
       >

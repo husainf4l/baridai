@@ -3,8 +3,9 @@
 import axios from "axios";
 
 const INSTAGRAM_APP_ID = process.env.NEXT_PUBLIC_INSTAGRAM_APP_ID;
-const INSTAGRAM_APP_SECRET = process.env.NEXT_PUBLIC_INSTAGRAM_APP_SECRET;
-const NGROK_URL = process.env.NEXT_PUBLIC_NGROK_URL;
+const INSTAGRAM_APP_SECRET = process.env.INSTAGRAM_APP_SECRET;
+const SITE_URL = "https://baridai.com";
+export const INSTAGRAM_VERIFY_TOKEN = "baridai_instagram_verify_token_12345"; // Custom verification token
 
 interface TokenResponse {
   access_token: string;
@@ -39,13 +40,13 @@ export async function exchangeForLongLivedToken(
   try {
     // Build the URL with parameters for token exchange
     const url = `https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${INSTAGRAM_APP_SECRET}&access_token=${shortLivedToken}`;
-    
+
     const response = await axios.get<LongLivedTokenResponse>(url);
-    
+
     if (response.status !== 200) {
       throw new Error(`Failed to exchange for long-lived token: ${response.statusText}`);
     }
-    
+
     return response.data;
   } catch (error) {
     console.error("Error exchanging for long-lived token:", error);
@@ -55,23 +56,22 @@ export async function exchangeForLongLivedToken(
 
 export async function exchangeCodeForToken(code: string): Promise<TokenResponse> {
   try {
-    // For local development, we'll handle this on the client-side
-    // In production, this should be handled by the backend
-    const redirectUri = `${NGROK_URL}/auth/callback`;
-    
+    // Use the correct redirect URI that matches what we registered with Instagram
+    const redirectUri = "https://baridai.com/webhook/instagram/auth-callback";
+
     const params = new URLSearchParams();
     params.append("client_id", INSTAGRAM_APP_ID || "");
     params.append("client_secret", INSTAGRAM_APP_SECRET || "");
     params.append("grant_type", "authorization_code");
     params.append("redirect_uri", redirectUri);
     params.append("code", code);
-    
+
     console.log("Exchanging code for token with params:", {
       clientId: INSTAGRAM_APP_ID,
       redirectUri,
       codeLength: code?.length || 0
     });
-    
+
     // First, get the short-lived access token
     const response = await axios.post<ShortLivedTokenResponse>(
       "https://api.instagram.com/oauth/access_token",
@@ -82,13 +82,13 @@ export async function exchangeCodeForToken(code: string): Promise<TokenResponse>
         },
       }
     );
-    
+
     const shortLivedToken: ShortLivedTokenResponse = response.data;
     console.log("Short-lived token obtained:", { userId: shortLivedToken.user_id });
-    
+
     // Now exchange it for a long-lived token
     const longLivedToken = await exchangeForLongLivedToken(shortLivedToken.access_token);
-    
+
     return {
       access_token: longLivedToken.access_token,
       user_id: shortLivedToken.user_id,
@@ -105,7 +105,7 @@ export async function getUserProfile(accessToken: string): Promise<InstagramUser
     const response = await axios.get<InstagramUserProfile>(
       `https://graph.instagram.com/v22.0/me?fields=id,username&access_token=${accessToken}`
     );
-    
+
     return response.data;
   } catch (error) {
     console.error("Error fetching user profile:", error);
@@ -117,22 +117,16 @@ export function getInstagramAuthUrl(): string {
   if (!INSTAGRAM_APP_ID) {
     throw new Error("Instagram App ID not found in environment variables");
   }
-  
-  if (!NGROK_URL) {
-    throw new Error("Ngrok URL not found in environment variables");
-  }
-  
-  // Use ngrok URL for redirect since Instagram needs HTTPS
-  // NOTE: This URI must exactly match what's in your Meta for Developers settings
-  const redirectUri = encodeURIComponent(`${NGROK_URL}/auth/callback`);
-  
-  // Instagram Basic Display API scopes - keep it minimal for better approval chances
-  const scope = encodeURIComponent("user_profile");
-  
+
+  // Use webhook URL for redirect as configured in Meta for Developers settings
+  const redirectUri = encodeURIComponent("https://baridai.com/webhook/instagram/auth-callback");
+
+  // Instagram Business API scopes for enhanced functionality
+  const scope = encodeURIComponent("instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_comments,instagram_business_content_publish,instagram_business_manage_insights");
+
   console.log("Using App ID:", INSTAGRAM_APP_ID);
-  console.log("Using Redirect URI:", `${NGROK_URL}/auth/callback`);
-  
-  // Instagram Basic Display OAuth URL
-  // For troubleshooting add state parameter: &state=your_state_value
-  return `https://api.instagram.com/oauth/authorize?client_id=${INSTAGRAM_APP_ID}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
+  console.log("Using Redirect URI:", "https://baridai.com/webhook/instagram/auth-callback");
+
+  // Instagram Business OAuth URL with additional parameters
+  return `https://www.instagram.com/oauth/authorize?enable_fb_login=0&force_authentication=1&client_id=${INSTAGRAM_APP_ID}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}`;
 }

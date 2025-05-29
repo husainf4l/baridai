@@ -31,49 +31,112 @@ export default function IntegrationsPage() {
   const [isLoadingIntegrations, setIsLoadingIntegrations] = useState(true);
 
   useEffect(() => {
-    // Check for existing Instagram authentication in localStorage
-    const instagramAuthCode = localStorage.getItem("instagram_auth_code");
-    if (instagramAuthCode) {
-      setConnectedPlatforms((prev) => ({ ...prev, Instagram: true }));
-    }
-
     // Listen for messages from the authentication popup
     const handleAuthMessage = async (event: MessageEvent) => {
-      if (event.data.type === "META_AUTH_SUCCESS") {
-        console.log("Instagram authentication successful");
+      console.log("Received message:", event.data);
+      if (event.data.type === "INSTAGRAM_AUTH_SUCCESS") {
+        console.log("Instagram authentication successful", event.data);
         setConnectedPlatforms((prev) => ({ ...prev, Instagram: true }));
         setIsConnecting(null);
 
-        // Move integration logic to the service
-        const jwtToken = localStorage.getItem("access_token");
-        const { accessToken, expiresAt, instagramId } = event.data;
-        if (jwtToken && accessToken && expiresAt) {
+        // Save the integration through our API
+        const saveIntegration = async () => {
           try {
-            await addIntegration(
-              {
-                name: "INSTAGRAM",
-                token: accessToken,
-                expiresAt,
-                instagramId,
+            const jwtToken = localStorage.getItem("access_token");
+            if (!jwtToken) {
+              console.error("No JWT token found for saving integration");
+              return;
+            }
+            
+            // Get Instagram app credentials
+            const clientId = process.env.NEXT_PUBLIC_INSTAGRAM_APP_ID;
+            const redirectUri = "https://baridai.com/webhook/instagram/auth-callback";
+            
+            // Save the integration with the token and account info we received
+            await fetch("https://baridai.com/api/integrations/instagram", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${jwtToken}`,
+                "Content-Type": "application/json"
               },
-              jwtToken
-            );
+              body: JSON.stringify({
+                token: event.data.accessToken,
+                instagramId: event.data.instagramId,
+                username: event.data.username,
+                expiresAt: event.data.expiresAt,
+                clientId: clientId,
+                redirectUri: redirectUri
+              })
+            });
+            
+            // Refresh integrations list after successful integration
+            const integrations = await getIntegrations(jwtToken);
+            setIntegrations(integrations);
+          } catch (err) {
+            console.error("Failed to save integration:", err);
+          }
+        };
+        
+        saveIntegration();
+      }
+    };
+
+    // Also check for cookies as a fallback mechanism
+    const checkForInstagramAuth = () => {
+      // Check cookies for instagram_connected token
+      const instagramConnected = document.cookie
+        .split("; ")
+        .find(row => row.startsWith("instagram_connected="));
+      
+      if (instagramConnected) {
+        // Remove the cookie after reading it
+        document.cookie = "instagram_connected=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        
+        console.log("Instagram authentication detected via cookie");
+        setConnectedPlatforms((prev) => ({ ...prev, Instagram: true }));
+        setIsConnecting(null);
+        
+        // Save the integration through our API
+        const saveIntegration = async () => {
+          try {
+            const jwtToken = localStorage.getItem("access_token");
+            if (!jwtToken) return;
+            
+            await fetch("https://baridai.com/api/integrations/instagram", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${jwtToken}`,
+                "Content-Type": "application/json"
+              }
+            });
+            
             // Refresh integrations list
             const integrations = await getIntegrations(jwtToken);
             setIntegrations(integrations);
           } catch (err) {
-            console.error("Failed to add integration", err);
+            console.error("Failed to save integration:", err);
           }
-        }
-      } else if (event.data.type === "META_AUTH_ERROR") {
-        console.error("Instagram authentication error:", event.data.error);
-        setIsConnecting(null);
-        alert(`Authentication failed: ${event.data.error}`);
+        };
+        
+        saveIntegration();
       }
     };
-
+    
+    // Add event listener for messages and also check cookies
     window.addEventListener("message", handleAuthMessage);
-    return () => window.removeEventListener("message", handleAuthMessage);
+    checkForInstagramAuth();
+    
+    // When window gets focus (popup closed), check again
+    const handleFocus = () => {
+      checkForInstagramAuth();
+    };
+    window.addEventListener("focus", handleFocus);
+    
+    // Clean up event listeners
+    return () => {
+      window.removeEventListener("message", handleAuthMessage);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, []);
 
   useEffect(() => {
@@ -140,14 +203,26 @@ export default function IntegrationsPage() {
     setIsConnecting("Instagram");
 
     try {
-      // Get Instagram authentication URL from our configuration service
-      const authUrl = getInstagramAuthUrl();
+      // Get the Instagram App ID from environment variables
+      const clientId = process.env.NEXT_PUBLIC_INSTAGRAM_APP_ID || "1406669200250374";
+      
+      console.log("Using Instagram App ID:", clientId);
+      
+      // Use the direct Instagram OAuth URL with environment variable
+      const authUrl = `https://www.instagram.com/oauth/authorize?enable_fb_login=0&force_authentication=1&client_id=${clientId}&redirect_uri=https://baridai.com/webhook/instagram/auth-callback&response_type=code&scope=instagram_business_basic%2Cinstagram_business_manage_messages%2Cinstagram_business_manage_comments%2Cinstagram_business_content_publish%2Cinstagram_business_manage_insights`;
 
       console.log("Instagram OAuth URL:", authUrl);
 
-      // Open Instagram OAuth dialog in a popup window
-      window.open(authUrl, "instagram_login", "width=600,height=700");
-
+      // Open Instagram OAuth dialog in a popup window with specific dimensions
+      const popup = window.open(
+        authUrl, 
+        "instagram_login", 
+        "width=600,height=700,status=yes,toolbar=no,menubar=no,location=no"
+      );
+      
+      // Focus the popup
+      if (popup) popup.focus();
+      
       console.log("Initiating Instagram authentication...");
     } catch (error) {
       console.error("Failed to initiate Instagram authentication:", error);

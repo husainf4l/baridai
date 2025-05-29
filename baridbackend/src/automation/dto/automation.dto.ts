@@ -8,6 +8,10 @@ export class CreateAutomationDto {
   @IsOptional()
   @IsBoolean()
   active?: boolean;
+
+  @IsOptional()
+  @IsString()
+  integrationId?: string;
 }
 
 export class UpdateAutomationDto {
@@ -18,4 +22,8 @@ export class UpdateAutomationDto {
   @IsOptional()
   @IsBoolean()
   active?: boolean;
+
+  @IsOptional()
+  @IsString()
+  integrationId?: string;
 }

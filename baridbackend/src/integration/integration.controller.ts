@@ -16,6 +16,7 @@ import { Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { IntegrationService } from './integration.service';
 import { CreateIntegrationDto } from './dto/create-integration.dto';
+import { InstagramTokenDto } from './dto/instagram-token.dto';
 
 @Controller('integrations')
 export class IntegrationController {
@@ -42,6 +43,7 @@ export class IntegrationController {
     @Request() req,
     @Body() createIntegrationDto: CreateIntegrationDto,
   ) {
+    console.log(createIntegrationDto);
     return this.integrationService.createIntegration(
       req.user.userId,
       createIntegrationDto,
@@ -115,5 +117,34 @@ export class IntegrationController {
       console.error('Error processing Instagram webhook:', error);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
     }
+  }
+
+  /**
+   * Exchange Instagram authorization code for access token and save as integration
+   */
+  @UseGuards(JwtAuthGuard)
+  @Post('instagram/token')
+  async exchangeInstagramToken(
+    @Request() req,
+    @Body() instagramTokenDto: InstagramTokenDto,
+  ) {
+    const { code, redirectUri } = instagramTokenDto;
+    return this.integrationService.exchangeInstagramToken(
+      req.user.userId,
+      code,
+      redirectUri,
+    );
+  }
+
+  /**
+   * Refresh an existing Instagram token
+   */
+  @UseGuards(JwtAuthGuard)
+  @Post('instagram/refresh/:id')
+  async refreshInstagramToken(@Request() req, @Param('id') integrationId: string) {
+    return this.integrationService.refreshInstagramToken(
+      req.user.userId,
+      integrationId,
+    );
   }
 }

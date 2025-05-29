@@ -1,11 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateListenerDto } from './dto/create-listener.dto';
+import { IntegrationService } from '../integration/integration.service';
 import axios from 'axios';
 
 @Injectable()
 export class WebhookService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private integrationService: IntegrationService
+  ) { }
 
   // Process Instagram webhook data
   async processInstagramWebhook(payload: any): Promise<void> {
@@ -176,6 +180,10 @@ export class WebhookService {
             where: {
               userId: integration.userId,
               active: true,
+              OR: [
+                { integrationId: integration.id }, // Filter by specific integration
+                { integrationId: null }            // Include automations not tied to any specific integration
+              ]
             },
             include: {
               listener: true,
@@ -184,16 +192,16 @@ export class WebhookService {
           });
 
           console.log(`Found ${automations.length} active automations for user ${integration.userId}`);
-          
+
           if (automations.length === 0) {
             console.log('⚠️ No active automations found for this integration, creating message will be skipped');
             continue;
           }
-          
+
           // Store the message for each active automation
           for (const automation of automations) {
             console.log(`Creating DM record for automation: ${automation.id}`);
-            
+
             // Create a record of this DM in our database
             try {
               const createdDm = await this.prisma.dms.create({
@@ -204,13 +212,13 @@ export class WebhookService {
                   message: messageText,
                 },
               });
-              
+
               console.log(`✅ Successfully created DM record: ${createdDm.id}`);
-              
+
               // Send message info to external webhook before responding
               let webhookResponse = null;
               let responseMessage = "received";
-              
+
               try {
                 console.log(`📤 Sending message info to widd.ai webhook`);
                 const webhookResult = await axios.post('https://widd.ai/webhook/baridai', {
@@ -234,10 +242,10 @@ export class WebhookService {
                     'User-Agent': 'BaridAI-Webhook/1.0'
                   }
                 });
-                
+
                 console.log('✅ Sent message info to widd.ai webhook');
                 console.log('📊 Webhook response:', JSON.stringify(webhookResult.data, null, 2));
-                
+
                 // If the webhook returns a response message, use it
                 if (webhookResult.data && webhookResult.data.message) {
                   responseMessage = webhookResult.data.message;
@@ -251,11 +259,11 @@ export class WebhookService {
                   data: webhookError?.response?.data
                 }, null, 2));
               }
-              
+
               // Automatically respond with the message
               try {
                 console.log(`🔄 Sending automatic response to sender ${senderId}: "${responseMessage}"`);
-                
+
                 // Send response using the Instagram Graph API
                 const response = await this.sendInstagramMessage(
                   integration.userId,
@@ -265,7 +273,7 @@ export class WebhookService {
                     message: responseMessage
                   }
                 );
-                
+
                 if (response.success) {
                   console.log(`✅ Automatic response sent successfully`);
                 } else {
@@ -337,7 +345,7 @@ export class WebhookService {
   // Get recent messages for a user
   async getRecentMessages(userId: string, options?: any) {
     console.log(`Getting recent messages for user: ${userId}`);
-    
+
     // Get all automations for this user
     const automations = await this.prisma.automation.findMany({
       where: {
@@ -354,7 +362,7 @@ export class WebhookService {
     }
 
     console.log(`Found ${automations.length} automations for user`);
-    
+
     // Get automation IDs
     const automationIds = automations.map((automation) => automation.id);
 
@@ -364,14 +372,14 @@ export class WebhookService {
         in: automationIds,
       },
     };
-    
+
     // Apply platform filter if provided
     if (options?.platform) {
       console.log(`Filtering by platform: ${options.platform}`);
       // This would need to be mapped to the correct field in your schema
       // Currently no platform field exists in Dms model
     }
-    
+
     // Apply before filter if provided
     if (options?.before) {
       console.log(`Filtering messages before: ${options.before}`);
@@ -379,11 +387,11 @@ export class WebhookService {
         lt: new Date(options.before),
       };
     }
-    
+
     // Determine limit
     const limit = options?.limit ? parseInt(String(options.limit)) : 100;
     console.log(`Using limit: ${limit}`);
-    
+
     // Get recent messages for these automations
     const messages = await this.prisma.dms.findMany({
       where,
@@ -392,16 +400,16 @@ export class WebhookService {
       },
       take: limit,
     });
-    
+
     console.log(`Found ${messages.length} messages`);
-    
+
     return messages;
   }
 
   // Get messages for a specific automation
   async getMessagesForAutomation(userId: string, automationId: string) {
     console.log(`Getting messages for automation: ${automationId}, user: ${userId}`);
-    
+
     // Verify that the automation belongs to the user
     const automation = await this.prisma.automation.findFirst({
       where: {
@@ -413,7 +421,7 @@ export class WebhookService {
     if (!automation) {
       throw new NotFoundException('Automation not found');
     }
-    
+
     console.log(`Found automation: ${automation.name}`);
 
     // Get messages for this automation
@@ -425,9 +433,9 @@ export class WebhookService {
         createdAt: 'desc',
       },
     });
-    
+
     console.log(`Found ${messages.length} messages for automation: ${automationId}`);
-    
+
     return messages;
   }
 
@@ -448,7 +456,7 @@ export class WebhookService {
     try {
       console.log(`Fetching Instagram messages for user: ${userId}`);
       console.log(`Options:`, JSON.stringify(options));
-      
+
       // First, get the user's Instagram integration to verify tokens and page access
       const integrations = await this.prisma.integration.findMany({
         where: {
@@ -458,7 +466,7 @@ export class WebhookService {
       });
 
       console.log(`Found ${integrations.length} Instagram integrations for user ${userId}`);
-      
+
       if (!integrations.length) {
         console.log(`No Instagram integrations found for user ${userId}`);
         return {
@@ -504,11 +512,11 @@ export class WebhookService {
       const instagramIds = integrations
         .map(integration => integration.instagramId)
         .filter(Boolean);
-      
+
       const pageIds = integrations
         .map(integration => integration.pageId)
         .filter(Boolean);
-      
+
       console.log(`Instagram IDs for filtering: ${JSON.stringify(instagramIds)}`);
       console.log(`Page IDs for filtering: ${JSON.stringify(pageIds)}`);
 
@@ -516,7 +524,7 @@ export class WebhookService {
       // This should include both Instagram IDs and Page IDs since
       // sometimes we store one or the other depending on the source
       const possibleReceiverIds = [...instagramIds];
-      
+
       // Add page IDs if they exist and aren't already included
       if (pageIds.length > 0) {
         for (const pageId of pageIds) {
@@ -525,7 +533,7 @@ export class WebhookService {
           }
         }
       }
-      
+
       // If we have any IDs to filter by, add them to the query
       if (possibleReceiverIds.length > 0) {
         console.log(`Filtering by receiver IDs: ${JSON.stringify(possibleReceiverIds)}`);
@@ -533,19 +541,19 @@ export class WebhookService {
           in: possibleReceiverIds
         };
       }
-      
+
       // Filter by specific page if explicitly provided as parameter
       if (options.pageId) {
         console.log(`Filtering by specific pageId: ${options.pageId}`);
         where.reciever = options.pageId;
       }
-      
+
       // Filter by conversation (sender) if provided
       if (options.conversationId) {
         console.log(`Filtering by conversationId: ${options.conversationId}`);
         where.senderId = options.conversationId;
       }
-      
+
       console.log("Final query where clause:", JSON.stringify(where, null, 2));
 
       // Get Instagram messages using Prisma
@@ -563,11 +571,11 @@ export class WebhookService {
           },
         },
       });
-      
+
       console.log(`Found ${messages.length} messages matching criteria`);
 
       console.log(`Found ${messages.length} messages matching criteria`);
-      
+
       // Log first few messages for debugging
       if (messages.length > 0) {
         console.log('Sample messages:');
@@ -576,7 +584,7 @@ export class WebhookService {
         });
       } else {
         console.log('NO MESSAGES FOUND with query:', JSON.stringify(where, null, 2));
-        
+
         // Debug - Get all DMs to see what's in the database
         const allDms = await this.prisma.dms.findMany({
           take: 10
@@ -639,7 +647,7 @@ export class WebhookService {
           error: 'No valid Instagram integration found with access token',
         };
       }
-      
+
       // Make sure we have an Instagram ID to send from
       if (!integration.instagramId) {
         return {
@@ -667,7 +675,7 @@ export class WebhookService {
         // Make the actual API call to Instagram
         // Clean the token to remove any whitespace, newline characters, or other problematic chars
         let cleanToken = integration.token;
-        
+
         // Handle null or undefined token
         if (!cleanToken) {
           console.error('Token is null or undefined');
@@ -676,18 +684,18 @@ export class WebhookService {
             error: 'Token is missing in the integration',
           };
         }
-        
+
         // Convert to string if not already and perform thorough cleaning
         cleanToken = String(cleanToken)
           .trim()
           .replace(/[\r\n\t\f\v ]/g, ''); // Remove all whitespace characters
-        
+
         // Log token diagnostics for debugging
         console.log('Raw token length:', integration.token.length);
         console.log('Clean token length:', cleanToken.length);
         console.log('Token first 10 chars:', cleanToken.substring(0, 10));
         console.log('Token last 10 chars:', cleanToken.substring(cleanToken.length - 10));
-        
+
         // Check for extremely short or malformed tokens
         if (cleanToken.length < 20) {
           console.error('Token appears too short to be valid');
@@ -696,17 +704,17 @@ export class WebhookService {
             error: 'Token appears to be invalid (too short)',
           };
         }
-        
+
         const response = await axios.post(url, requestBody, {
           headers: {
             'Authorization': `Bearer ${cleanToken}`,
             'Content-Type': 'application/json',
           },
         });
-        
+
         console.log(`Instagram API response: ${response.status} ${response.statusText}`);
         console.log(`Response data:`, JSON.stringify(response.data, null, 2));
-        
+
         return {
           success: true,
           data: {
@@ -767,24 +775,15 @@ export class WebhookService {
         throw new Error('Invalid state: missing userId');
       }
 
-      // TODO: Exchange authorization code for long-lived token
-      // For now, mock the token exchange process
-      const mockToken = `MOCK_TOKEN_${Math.random().toString(36).substring(2, 15)}`;
-      const mockPageId = `${Math.random().toString(36).substring(2, 10)}`;
-      const mockInstagramId = `${Math.random().toString(36).substring(2, 10)}`;
+      // Use the same redirect URI that the frontend is using
+      const redirectUri = "https://baridai.com/webhook/instagram/auth-callback";
 
-      // Store the integration in the database
-      await this.prisma.integration.create({
-        data: {
-          userId,
-          name: 'INSTAGRAM',
-          token: mockToken,
-          expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days from now
-          instagramId: mockInstagramId,
-          pageId: mockPageId,
-          pageName: 'Mock Instagram Page',
-        },
-      });
+      // Exchange code for token using the integration service
+      const result = await this.integrationService.exchangeInstagramToken(
+        userId,
+        code,
+        redirectUri
+      );
 
       console.log(`Created Instagram integration for user: ${userId}`);
     } catch (error) {
@@ -846,7 +845,7 @@ export class WebhookService {
       // For now, just generate a confirmation code
       const confirmationCode = `DELETION_CONFIRMED_${Math.random().toString(36).substring(2, 10)}`;
       console.log(`Generated confirmation code: ${confirmationCode}`);
-      
+
       return confirmationCode;
     } catch (error) {
       console.error('Error processing Instagram data deletion:', error);
@@ -1016,5 +1015,74 @@ export class WebhookService {
         id: listenerId,
       },
     });
+  }
+
+  /**
+   * Handle Instagram OAuth code exchange and integration creation
+   * @param userId User ID to associate the integration with
+   * @param code Instagram authorization code
+   * @returns Integration details
+   */
+  async handleInstagramOAuth(userId: string, code: string): Promise<any> {
+    try {
+      // Use the exact same redirect URI that is used in the frontend
+      // This must match what was used when the user was redirected to Instagram
+      const redirectUri = "https://baridai.com/webhook/instagram/auth-callback";
+
+      // Use existing integration service method to exchange token and create integration
+      return await this.integrationService.exchangeInstagramToken(
+        userId,
+        code,
+        redirectUri
+      );
+    } catch (error) {
+      console.error('Error handling Instagram OAuth:', error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Failed to process Instagram authentication',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  /**
+   * Generate Instagram OAuth URL for frontend to redirect users
+   * @param state Optional state parameter for security validation
+   * @returns OAuth URL for Instagram auth flow
+   */
+  getInstagramAuthUrl(state?: string): string {
+    const clientId = process.env.INSTAGRAM_APP_ID;
+    if (!clientId) {
+      throw new HttpException(
+        'Instagram App ID not configured',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+
+    // Use the exact same redirect URI that is used in the frontend
+    const redirectUri = "https://baridai.com/webhook/instagram/auth-callback";
+
+    // Expanded scope for better Instagram access
+    // user_profile: Basic profile info
+    // user_media: Media content
+    // instagram_basic: Comments, likes, etc.
+    // instagram_manage_messages: For DM access
+    const scope = 'user_profile,user_media,instagram_basic,instagram_manage_messages';
+
+    let authUrl = `https://api.instagram.com/oauth/authorize` +
+      `?client_id=${clientId}` +
+      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+      `&scope=${scope}` +
+      `&response_type=code`;
+
+    // Add state parameter if provided for security validation
+    if (state) {
+      authUrl += `&state=${encodeURIComponent(state)}`;
+    }
+
+    console.log(`Generated Instagram auth URL with redirect to: ${redirectUri}`);
+    return authUrl;
   }
 }

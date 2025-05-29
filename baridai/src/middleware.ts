@@ -33,6 +33,11 @@ export function middleware(request: NextRequest) {
   // Only allow this username
   const ALLOWED_USERNAMES = ['upthouse'];
 
+  // Skip middleware processing for webhook routes
+  if (path.startsWith('/webhook/')) {
+    return NextResponse.next();
+  }
+
   // Match /username/... (not /auth, /website, or legal pages)
   const match = path.match(/^\/([^/]+)\//);
   if (match) {
@@ -57,6 +62,9 @@ export const config = {
     // Auth routes
     '/login',
     '/signup',
-    '/:username((?!auth|website|cookies|privacy|terms|delete|_next|favicon.ico|api|images|public).*)*',
+    // Username routes (with exclusions)
+    '/:username((?!auth|website|cookies|privacy|terms|delete|_next|favicon.ico|api|images|public|webhook).*)*',
+    // We'll let the middleware handle webhook routes explicitly
+    '/webhook/:path*'
   ],
 };

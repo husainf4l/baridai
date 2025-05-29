@@ -15,4 +15,12 @@ export class CreateIntegrationDto {
   @IsOptional()
   @IsString()
   instagramId?: string;
+
+  @IsOptional()
+  @IsString()
+  pageId?: string;
+
+  @IsOptional()
+  @IsString()
+  pageName?: string;
 }

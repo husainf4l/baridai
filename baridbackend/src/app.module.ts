@@ -9,6 +9,7 @@ import { HealthModule } from './health/health.module';
 import { IntegrationModule } from './integration/integration.module';
 import { AutomationModule } from './automation/automation.module';
 import { WebhookModule } from './webhook/webhook.module';
+import { AiagentModule } from './aiagent/aiagent.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { WebhookModule } from './webhook/webhook.module';
     IntegrationModule,
     AutomationModule,
     WebhookModule,
+    AiagentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

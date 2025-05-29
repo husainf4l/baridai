@@ -9,13 +9,13 @@ export class AutomationService {
   async getAutomations(userId: string) {
     return this.prisma.automation.findMany({
       where: { userId },
-      include: {
-        dms: true,
-        keywords: true,
-        listener: true,
-        posts: true,
-        trigger: true,
-      },
+      // include: {
+      //   // dms: true,
+      //   // keywords: true,
+      //   // listener: true,
+      //   // posts: true,
+      //   // trigger: true,
+      // },
     });
   }
 

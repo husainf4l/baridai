@@ -1,9 +1,3 @@
-/*
-  Warnings:
-
-  - You are about to drop the `users` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 -- CreateEnum
 CREATE TYPE "INTEGRATIONS" AS ENUM ('INSTAGRAM');
 
@@ -15,9 +9,6 @@ CREATE TYPE "LISTENER" AS ENUM ('SMARTAI', 'MESSAGE');
 
 -- CreateEnum
 CREATE TYPE "MEDIATYPE" AS ENUM ('IMAGE', 'VIDEO', 'CAROUSEL_ALBUM');
-
--- DropTable
-DROP TABLE "users";
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -51,6 +42,7 @@ CREATE TABLE "Automation" (
     "updated_at" TIMESTAMP(3) NOT NULL,
     "active" BOOLEAN NOT NULL DEFAULT false,
     "userId" TEXT,
+    "integrationId" TEXT,
 
     CONSTRAINT "Automation_pkey" PRIMARY KEY ("id")
 );
@@ -65,6 +57,8 @@ CREATE TABLE "Integration" (
     "token" TEXT NOT NULL,
     "expires_at" TIMESTAMP(3) NOT NULL,
     "instgramId" TEXT,
+    "pageId" TEXT,
+    "pageName" TEXT,
 
     CONSTRAINT "Integration_pkey" PRIMARY KEY ("id")
 );
@@ -143,9 +137,6 @@ CREATE UNIQUE INDEX "Subscription_userId_key" ON "Subscription"("userId");
 CREATE UNIQUE INDEX "Subscription_customer_id_key" ON "Subscription"("customer_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Integration_userId_key" ON "Integration"("userId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Integration_token_key" ON "Integration"("token");
 
 -- AddForeignKey
@@ -153,6 +144,9 @@ ALTER TABLE "Subscription" ADD CONSTRAINT "Subscription_userId_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "Automation" ADD CONSTRAINT "Automation_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Automation" ADD CONSTRAINT "Automation_integrationId_fkey" FOREIGN KEY ("integrationId") REFERENCES "Integration"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Integration" ADD CONSTRAINT "Integration_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

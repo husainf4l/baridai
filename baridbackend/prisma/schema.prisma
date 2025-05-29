@@ -31,18 +31,20 @@ model Subscription {
 }
 
 model Automation {
-  id        String     @id @default(uuid())
-  name      String     @default("Untitled")
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @updatedAt @map("updated_at")
-  active    Boolean    @default(false)
-  userId    String?
-  User      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  dms       Dms[]
-  keywords  Keywords[]
-  listener  Listener[]
-  posts     Post[]
-  trigger   Trigger[]
+  id            String     @id @default(uuid())
+  name          String     @default("Untitled")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+  active        Boolean    @default(false)
+  userId        String?
+  integrationId String?
+  User          User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Integration   Integration? @relation(fields: [integrationId], references: [id])
+  dms           Dms[]
+  keywords      Keywords[]
+  listener      Listener[]
+  posts         Post[]
+  trigger       Trigger[]
 }
 
 model Integration {
@@ -57,6 +59,7 @@ model Integration {
   pageId      String?
   pageName    String?
   User        User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  automations Automation[]
 }
 
 model Dms {
